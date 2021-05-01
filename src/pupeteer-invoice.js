@@ -1,8 +1,13 @@
-import puppeteer, { PDFMargin } from "puppeteer";
-import { template } from "lodash";
-import { promises as fs } from "fs";
-import { resolve, join } from "path";
-import { getData } from "./data-provider";
+// import puppeteer, { PDFMargin } from "puppeteer";
+// import { template } from "lodash";
+// import { promises as fs } from "fs";
+// import { resolve, join } from "path";
+// import { getData } from "./data-provider";
+const puppeteer = require("puppeteer");
+const { template } = require("lodash");
+const { promises: fs } = require("fs");
+const { resolve, join } = require("path");
+const { getData } = require("./data-provider");
 
 const data = getData();
 const templateConfig = {

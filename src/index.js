@@ -1,7 +1,11 @@
-import PdfMaker from "pdfmake";
-import path from "path";
-import fs from "fs";
-import { getData } from "./data-provider";
+// import PdfMaker from "pdfmake";
+// import path from "path";
+// import fs from "fs";
+// import { getData } from "./data-provider";
+const PdfMaker = require("pdfmake");
+const path = require("path");
+const fs = require("fs");
+const { getData } = require("./data-provider");
 
 const fonts = {
   Roboto: {
@@ -286,12 +290,12 @@ const docDefinition = {
         ],
       },
       layout: {
-        hLineColor: function (i: number, node: any) {
+        hLineColor: function (i, node) {
           return i === 0 || i === node.table.body.length || i % 2 !== 0
             ? "#CDCDCD"
             : "#FFFFFF";
         },
-        vLineColor: function (i: number, node: any) {
+        vLineColor: function (i, node) {
           return i === 0 || i === node.table.widths.length || i % 2 === 0
             ? "#CDCDCD"
             : "#FFFFFF";
@@ -308,7 +312,7 @@ const docDefinition = {
   styles: {
     buyersName: {
       fontSize: 18,
-      margin: [10, 20, 20, 20] as any,
+      margin: [10, 20, 20, 20],
       bold: true,
     },
     invoiceDoc: {
@@ -317,16 +321,16 @@ const docDefinition = {
     headerDetailsItem: {
       fontSize: 9,
       lineHeight: 1.5,
-      margin: [10, 0, 0, 0] as any,
+      margin: [10, 0, 0, 0],
     },
     headerDetailsItemFirst: {
       fontSize: 9,
-      margin: [10, 18, 0, 0] as any,
+      margin: [10, 18, 0, 0],
       lineHeight: 1.5,
     },
     sectionHeader: {
       fontSize: 9,
-      margin: [13, 8, 0, 0] as any,
+      margin: [13, 8, 0, 0],
       bold: true,
     },
     dataTableHeader: {
