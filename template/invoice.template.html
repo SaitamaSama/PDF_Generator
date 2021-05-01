@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <link rel="preconnect" href="https://fonts.gstatic.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap"
+      rel="stylesheet"
+    />
+
+    <title>Invoice</title>
+
+    <style>
+      * {
+        font-family: Roboto, sans-serif;
+        -webkit-print-color-adjust: exact;
+      }
+      body {
+        margin: 0;
+        font-size: 12px;
+        line-height: 1.6;
+        border: 1px solid #cdcdcd;
+      }
+      thead {
+        display: table-header-group;
+        break-inside: avoid;
+      }
+      .row {
+        display: grid;
+        padding: 15px 30px;
+        grid-template-columns: 1fr 1fr;
+        border-top: 1px solid #cdcdcd;
+        border-bottom: 1px solid #cdcdcd;
+      }
+      .row.table-container {
+        display: block;
+        padding: 15px 10px;
+      }
+      .row:not(:first-child) {
+        border-top: none;
+      }
+      .sec-title {
+        font-weight: 700;
+      }
+      .line {
+        margin: 6px 0;
+      }
+      .data-table {
+        width: 100%;
+        border-spacing: 0;
+      }
+      .data-table thead {
+        background-color: #cdcdcd;
+      }
+      .data-table th {
+        border: none;
+        padding: 8px 0;
+      }
+      .t-desc {
+        width: 40%;
+      }
+      .t-quantity,
+      .t-price,
+      .t-tax,
+      .t-total {
+        text-align: right;
+        padding-right: 8px;
+      }
+      .t-id {
+        width: 5%;
+        text-align: center;
+      }
+      td {
+        border-bottom: 1px solid #cdcdcd;
+        color: #333;
+      }
+      .terms {
+        margin-top: 24px;
+      }
+      .terms td {
+        border-bottom: none;
+        padding-left: 8px;
+      }
+      .terms th {
+        padding-left: 8px;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- <header style="font-family: Roboto, sans-serif; display: flex">
+      <div
+        style="
+          font-size: 24px;
+          margin: 24px;
+          width: calc(50% - 48px);
+          max-width: 50%;
+        "
+      >
+        Brand Name
+      </div>
+      <div
+        style="
+          font-size: 12px;
+          margin: 24px;
+          width: 50%;
+          max-width: 50%;
+          line-height: 1.6;
+        "
+      >
+        <section style="">
+          <div style="display: flex">
+            <div style="width: 30%">Purchase Order#</div>
+            <div style="width: 70%">ordernumber</div>
+          </div>
+          <div style="display: flex">
+            <div style="width: 30%">Order Date</div>
+            <div style="width: 70%">orderdate</div>
+          </div>
+          <div style="display: flex">
+            <div style="width: 30%">Delivery Date</div>
+            <div style="width: 70%">deliverydate</div>
+          </div>
+          <div style="display: flex">
+            <div style="width: 30%">Purchaser</div>
+            <div style="width: 70%">purchaser</div>
+          </div>
+          <div style="display: flex">
+            <div style="width: 30%">Contact Details</div>
+            <div style="width: 70%">contact</div>
+          </div>
+        </section>
+      </div>
+    </header> -->
+    <main>
+      <section class="row">
+        <section class="col">
+          <header class="sec-title">Bill to:</header>
+          <section class="details">
+            <div class="line"><%= bill_name %></div>
+            <div class="line"><%= bill_address %></div>
+            <div class="line">Pin Code - <%= bill_pincode %></div>
+            <div class="line">GST - <%= bill_gst %></div>
+          </section>
+        </section>
+        <section class="col">
+          <header class="sec-title">Vendor details</header>
+          <section class="details">
+            <div class="line"><%= vendor_name %></div>
+            <div class="line"><%= vendor_address %></div>
+            <div class="line">Pin Code - <%= vendor_pincode %></div>
+            <div class="line">GST - <%= vendor_gst %></div>
+            <div class="line">PAN - <%= vendor_pan %></div>
+          </section>
+        </section>
+      </section>
+      <section class="row">
+        <section class="col"></section>
+        <section class="col">
+          <header class="sec-title">Shipping address</header>
+          <section class="details">
+            <div class="line"><%= shipping_name %></div>
+            <div class="line"><%= shipping_address %></div>
+            <div class="line">Pin Code - <%= shipping_pincode %></div>
+          </section>
+        </section>
+      </section>
+      <section class="row table-container">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th class="t-id">#</th>
+              <th class="t-desc">Description</th>
+              <th>Unit</th>
+              <th>Quantity</th>
+              <th>Make</th>
+              <th>Price</th>
+              <th>Tax</th>
+              <th>Total</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% _.forEach(table_items, function (item) { %>
+            <tr>
+              <td class="t-id"><%- item.id %></td>
+              <td class="t-desc"><%- item.description %></td>
+              <td class="t-unit"><%- item.unit %></td>
+              <td class="t-quantity"><%- item.quantity %></td>
+              <td class="t-make"><%- item.make %></td>
+              <td class="t-price"><%- item.price %></td>
+              <td class="t-tax"><%- item.tax %></td>
+              <td class="t-total"><%- item.total %></td>
+            </tr>
+            <% }); %>
+          </tbody>
+        </table>
+        <table class="data-table terms">
+          <!-- <thead>
+            <th>Terms and Conditions</th>
+          </thead>
+          <tbody>
+            <tr>
+              <td>For Supply of DuctableEquipment's:</td>
+            </tr>
+            <tr>
+              <td>
+                1) 100% Advance along with techno commercially clear &
+                acceptable purchase order.
+              </td>
+            </tr>
+            <tr>
+              <td>For Low side jobs & Installation jobs:</td>
+            </tr>
+            <tr>
+              <td>2)30% Advance along with acceptable purchase order</td>
+            </tr>
+            <tr>
+              <td>
+                3)30% payment against the supply and installation of ducts with
+                insulation (100%) at site.
+              </td>
+            </tr>
+            <tr>
+              <td>
+                4)20% after 100% copper piping work and 100% grills delivery and
+                installation
+              </td>
+            </tr>
+            <tr>
+              <td>
+                5) 15% after commissioning and site handover with handover
+                documents sign off
+              </td>
+            </tr>
+            <tr>
+              <td>6) 5% retention for 6 months</td>
+            </tr>
+            <tr>
+              <td>7) .Taxes as applicable</td>
+            </tr>
+            <tr>
+              <td>7) .Taxes as applicable</td>
+            </tr>
+            <tr>
+              <td>
+                8) .Bill challan should mention the relevant PO number & date
+              </td>
+            </tr>
+            <tr>
+              <td>
+                9).Delivery challan should be signed by site supervisor or site
+                engineer
+              </td>
+            </tr>
+            <tr>
+              <td>
+                10).GST will be payable post sharing GST filing receipt with
+                accounts
+              </td>
+            </tr>
+            <tr>
+              <td>
+                11) .The safety & welfare of himself & his team is the sole
+                responsibility of the Vendor. Company will not be liable to any
+                damages in case of any accident on site
+              </td>
+            </tr>
+            <tr>
+              <td>
+                12) .Very high quality of work is to be maintained. For any
+                defects or flaws found in the work, vendor will be liable for
+                rectification without any additional cost.
+              </td>
+            </tr>
+            <tr>
+              <td>
+                13) Lifting / shifting in your scope of work with no additional
+                costing.
+              </td>
+            </tr>
+            <tr>
+              <td>
+                14) MS Stand for outdoor machines is in your scope with no
+                additional charges
+              </td>
+            </tr>
+            <tr>
+              <td>
+                15) Site Housekeeping on daily basis of your work is in your
+                scope
+              </td>
+            </tr>
+            <tr>
+              <td>16) Delivery timeline -20 days from the date of PO</td>
+            </tr>
+          </tbody> -->
+          <thead>
+            <tr>
+              <th style="text-align: left">Terms and Conditions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% _.forEach(terms, function (term) { %>
+            <tr>
+              <td class="t-r-term-and-c"><%- term %></td>
+            </tr>
+            <% }); %>
+          </tbody>
+        </table>
+      </section>
+    </main>
+  </body>
+</html>
