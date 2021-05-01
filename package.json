@@ -17,6 +17,8 @@
     "typescript": "^4.2.4"
   },
   "dependencies": {
+    "csvjson": "^5.1.0",
+    "image-to-base64": "^2.2.0",
     "lodash": "^4.17.21",
     "pdfmake": "^0.1.71",
     "puppeteer": "^9.0.0"

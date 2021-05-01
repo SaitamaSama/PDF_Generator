@@ -20,9 +20,11 @@
       }
       body {
         margin: 0;
-        font-size: 12px;
+        font-size: 10px;
         line-height: 1.6;
-        border: 1px solid #cdcdcd;
+        /* border: 1px solid #e7e6e6; */
+        border-top: none;
+        border-bottom: none;
       }
       thead {
         display: table-header-group;
@@ -32,8 +34,8 @@
         display: grid;
         padding: 15px 30px;
         grid-template-columns: 1fr 1fr;
-        border-top: 1px solid #cdcdcd;
-        border-bottom: 1px solid #cdcdcd;
+        border-top: 1px solid #e7e6e6;
+        border-bottom: 1px solid #e7e6e6;
       }
       .row.table-container {
         display: block;
@@ -51,13 +53,14 @@
       .data-table {
         width: 100%;
         border-spacing: 0;
+        border: 1px solid #e7e6e6;
       }
       .data-table thead {
-        background-color: #cdcdcd;
+        background-color: #e7e6e6;
       }
       .data-table th {
         border: none;
-        padding: 8px 0;
+        padding: 4px 0;
       }
       .t-desc {
         width: 40%;
@@ -73,12 +76,16 @@
         width: 5%;
         text-align: center;
       }
+      .t-unit {
+        text-align: center;
+      }
       td {
-        border-bottom: 1px solid #cdcdcd;
+        border-bottom: 1px solid #e7e6e6;
         color: #333;
       }
       .terms {
         margin-top: 24px;
+        border: none;
       }
       .terms td {
         border-bottom: none;
@@ -86,6 +93,17 @@
       }
       .terms th {
         padding-left: 8px;
+      }
+      .tax-breakdown {
+        border-bottom: none;
+        padding: 3px 8px 3px 0;
+      }
+      .total-end,
+      .mid-total {
+        background-color: #e7e6e6;
+        font-weight: 500;
+        padding-top: 4px;
+        padding-bottom: 4px;
       }
     </style>
   </head>
@@ -184,14 +202,14 @@
           <tbody>
             <% _.forEach(table_items, function (item) { %>
             <tr>
-              <td class="t-id"><%- item.id %></td>
-              <td class="t-desc"><%- item.description %></td>
-              <td class="t-unit"><%- item.unit %></td>
-              <td class="t-quantity"><%- item.quantity %></td>
-              <td class="t-make"><%- item.make %></td>
-              <td class="t-price"><%- item.price %></td>
-              <td class="t-tax"><%- item.tax %></td>
-              <td class="t-total"><%- item.total %></td>
+              <td class="t-id <%- item.class %>"><%- item['#'] %></td>
+              <td class="t-desc <%- item.class %>"><%- item.Description %></td>
+              <td class="t-unit <%- item.class %>"><%- item.Unit %></td>
+              <td class="t-quantity <%- item.class %>"><%- item.Quantity %></td>
+              <td class="t-make <%- item.class %>"><%- item.Make %></td>
+              <td class="t-price <%- item.class %>"><%- item.Price %></td>
+              <td class="t-tax <%- item.class %>"><%- item.Tax %></td>
+              <td class="t-total <%- item.class %>"><%- item.Total %></td>
             </tr>
             <% }); %>
           </tbody>
