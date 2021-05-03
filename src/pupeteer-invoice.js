@@ -93,13 +93,50 @@ function getTaxBreakupData(data) {
 }
 
 async function generateInvoice({
-  poDetails,
-  vendorDetails,
-  itemDetails,
-  extra,
+  poDetails = {
+    buyersName: "",
+    poNumber: "",
+    createdAt: new Date(),
+    deliveryDate: new Date(),
+    createdBy: "",
+    contact: "",
+  },
+  vendorDetails = {
+    name: "",
+    billingAddress: "",
+    pincode: "",
+    gstin: "",
+    pan: "",
+  },
+  itemDetails = [
+    {
+      "#": "",
+      Description: "",
+      Unit: "",
+      Quantity: 0,
+      Make: "",
+      Price: "",
+      Tax: "",
+      Total: "",
+      Tax_percent: "",
+      Tax_num: "",
+    },
+  ],
+  extra = {
+    termsAndConditions: "",
+  },
   image,
-  billDetails,
-  shippingDetails,
+  billDetails = {
+    name: "",
+    address: "",
+    pincode: "",
+    gst: "",
+  },
+  shippingDetails = {
+    name: "",
+    address: "",
+    pincode: "",
+  },
 }) {
   const logo = await imageToBase64(image);
   // Header and footer template for the PDF document
