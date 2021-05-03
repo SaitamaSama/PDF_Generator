@@ -8,89 +8,71 @@ const { template, ..._ } = require("lodash");
 const { promises: fs, readFileSync } = require("fs");
 const { resolve, join } = require("path");
 const { getData } = require("./data-provider");
-const csvjson = require("csvjson");
 const imageToBase64 = require("image-to-base64");
 const { v4: uuid } = require("uuid");
 
 const data = getData();
 
-// Generates the rows for the tax breakup
-function getTaxBreakupData(data) {
-  const taxData = data
-    .filter((item) => item["Description"] !== "Total")
-    .map((item) => ({
-      Tax_percent: parseFloat(item["Tax_percent"]) * 100,
-      Tax: parseInt(item["Tax_num"], 10),
-    }));
-  const totalRow = data.find((item) => item["Description"] === "Total");
-  if (!totalRow) return [];
-  const taxableAmount = totalRow.Price;
-  const totalAmount = totalRow.Tax;
+function generateTable({ headers, rows }, taxBreakUps) {
+  function generateClass(header) {
+    return `t-${header.toLowerCase()}`;
+  }
 
-  // Groups by percentages
-  const grouped = _.groupBy(taxData, "Tax_percent");
-  const rows = [];
+  const thead = `
+  <thead>
+    <tr>
+      ${headers
+        .map((header) => `<th class="${generateClass(header)}">${header}</th>`)
+        .join("\n")}
+    </tr>
+  </thead>
+  `;
 
-  // Generates two rows for each tax bracket
-  Object.keys(grouped).map((key) => {
-    const sum = grouped[key]
-      .map((i) => i.Tax)
-      .reduce((totalTax, tax) => {
-        totalTax += tax;
-        return totalTax;
-      });
-    const percent = parseFloat(key);
-    if (isNaN(percent)) return;
+  const taxBreakupRows = Object.keys(taxBreakUps)
+    .map((taxBracket) => {
+      const length = headers.length;
+      if (length < 2)
+        throw new Error("Cannot produce table with less than two columns");
+      return `
+    <tr>
+      ${Array.from(new Array(length - 2), () => "<td></td>").join("\n")}
+      <td>
+        ${taxBracket}
+      </td>
+      <td>
+        ${taxBreakUps[taxBracket]}
+      </td>
+    </tr>
+    `;
+    })
+    .join("\n");
 
-    // SGST
-    rows.push({
-      "#": "",
-      Description: "",
-      Unit: "",
-      Quantity: "",
-      Make: "",
-      Price: "",
-      Tax: `SGST@${(percent / 2).toFixed(1)}`,
-      Total: (sum / 2).toFixed(2),
-      class: "tax-breakdown",
-    });
-    // CST
-    rows.push({
-      "#": "",
-      Description: "",
-      Unit: "",
-      Quantity: "",
-      Make: "",
-      Price: "",
-      Tax: `CST@${(percent / 2).toFixed(1)}`,
-      Total: (sum / 2).toFixed(2),
-      class: "tax-breakdown",
-    });
-  });
-  rows.unshift({
-    "#": "",
-    Description: "",
-    Unit: "",
-    Quantity: "",
-    Make: "",
-    Price: "",
-    Tax: `Taxable Amount`,
-    Total: taxableAmount,
-    class: "tax-breakdown",
-  });
-  rows.push({
-    "#": "",
-    Description: "",
-    Unit: "",
-    Quantity: "",
-    Make: "",
-    Price: "",
-    Tax: `Taxable Amount`,
-    Total: totalAmount,
-    class: "total-end",
-  });
+  const tbody = `
+  <tbody>
+    ${rows
+      .map(
+        (columns) =>
+          `<tr>
+          ${columns
+            .filter((col) => col !== "class")
+            .map(
+              (value, idx) =>
+                `<td class="${generateClass(headers[idx])}">${value}</td>`
+            )
+            .join("\n")}
+        </tr>`
+      )
+      .join("\n")}
+      ${taxBreakupRows}
+  </tbody>
+  `;
 
-  return rows;
+  return `
+  <table class="data-table">
+    ${thead}
+    ${tbody}
+  </table>
+  `;
 }
 
 async function generateInvoice({
@@ -111,7 +93,7 @@ async function generateInvoice({
   },
   itemDetails = [
     {
-      "#": "",
+      ID: "",
       Description: "",
       Unit: "",
       Quantity: 0,
@@ -137,6 +119,26 @@ async function generateInvoice({
     name: "",
     address: "",
     pincode: "",
+  },
+  table = {
+    headers: [
+      "ID",
+      "Name",
+      "Category",
+      "Description",
+      "Unit",
+      "Make",
+      "Quantity",
+      "Price",
+      "Total",
+    ],
+    // Rows should be an array of arrays
+    rows: [],
+  },
+  taxBreakups = {
+    "SGST@4.5%": "100",
+    "CST@4.5%": "100",
+    "Taxable Amount": "200",
   },
 }) {
   const logo = await imageToBase64(image);
@@ -242,18 +244,9 @@ async function generateInvoice({
     shipping_address: shippingDetails.address,
     shipping_pincode: shippingDetails.pincode,
     // Table items
-    table_items: [],
+    data_table: generateTable(table, taxBreakups),
     // Terms and condition
     terms: extra.termsAndConditions.split("\n").map((term) => term.trim()),
-  };
-
-  // Highlightes the middle total row
-  const total = getTaxBreakupData(itemDetails);
-  const midTotal = itemDetails.find((item) => item.Description === "Total");
-  const midTotalIndex = itemDetails.indexOf(midTotal);
-  itemDetails[midTotalIndex] = {
-    ...midTotal,
-    class: "mid-total",
   };
 
   const file = template(
@@ -269,7 +262,7 @@ async function generateInvoice({
   await page.setContent(
     file({
       ...templateConfig,
-      table_items: [...itemDetails, ...total],
+      table_items: itemDetails,
     })
   );
   await page.evaluateHandle("document.fonts.ready");
