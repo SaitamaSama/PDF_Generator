@@ -22,9 +22,10 @@ function getTaxBreakupData(data) {
       Tax_percent: parseFloat(item["Tax_percent"]) * 100,
       Tax: parseInt(item["Tax_num"], 10),
     }));
-  const taxableAmount = data.find((item) => item["Description"] === "Total")
-    .Price;
-  const totalAmount = data.find((item) => item["Description"] === "Total").Tax;
+  const totalRow = data.find((item) => item["Description"] === "Total");
+  if (!totalRow) return [];
+  const taxableAmount = totalRow.Price;
+  const totalAmount = totalRow.Tax;
 
   // Groups by percentages
   const grouped = _.groupBy(taxData, "Tax_percent");
@@ -125,7 +126,7 @@ async function generateInvoice({
   extra = {
     termsAndConditions: "",
   },
-  image,
+  image = "images/logo.png",
   billDetails = {
     name: "",
     address: "",
@@ -295,5 +296,7 @@ async function generateInvoice({
   // End
   return createdPath;
 }
+
+generateInvoice({});
 
 module.exports = generateInvoice;
