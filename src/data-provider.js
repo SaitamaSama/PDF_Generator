@@ -49,6 +49,7 @@ module.exports = {
           createdAt: "2021-04-27T12:01:47.386Z",
           updatedAt: "2021-04-27T12:01:47.386Z",
           __v: 0,
+          contact: "foo@example.com",
         },
       ],
       vendor: {

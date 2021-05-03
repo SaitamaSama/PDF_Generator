@@ -5,36 +5,13 @@
 // import { getData } from "./data-provider";
 const puppeteer = require("puppeteer");
 const { template, ..._ } = require("lodash");
-const { promises: fs } = require("fs");
+const { promises: fs, readFileSync } = require("fs");
 const { resolve, join } = require("path");
 const { getData } = require("./data-provider");
 const csvjson = require("csvjson");
 const imageToBase64 = require("image-to-base64");
 
 const data = getData();
-const templateConfig = {
-  // Bill:
-  bill_name: "Flipspaces Technology Labs Private Limited (UP)",
-  bill_address:
-    "1st Floor, C-25, Sector -8, NOIDA, Gautam Buddha Nagar, Uttar Pradesh",
-  bill_pincode: "201301",
-  bill_gst: "09AACCF6130F1ZW",
-  // Vendor
-  vendor_name: data.vendor.Vendors[0].vendorName,
-  vendor_address: data.vendor.Vendors[0].billingAddress,
-  vendor_pincode: "201301",
-  vendor_gst: data.vendor.Vendors[0].gstin,
-  vendor_pan: data.vendor.Vendors[0].pan,
-  // Shipping
-  shipping_name: "GGG Reality",
-  shipping_address:
-    "Raina tower, 1st floor, plot no -59, sec -136, Noida, 7409099890",
-  shipping_pincode: "201301",
-  // Table items
-  table_items: [],
-  // Terms and condition
-  terms: data.powo[0].termsAndConditions.split("\n").map((term) => term.trim()),
-};
 
 function getTotalDataSet(data) {
   const taxData = data
@@ -107,14 +84,15 @@ function getTotalDataSet(data) {
   return rows;
 }
 
-async function process() {
-  const tableData = csvjson
-    .toObject((await fs.readFile(resolve(join("src", "data.csv")))).toString())
-    .map((item) => ({
-      ...item,
-      class: "",
-    }));
-  const image = resolve(join("images", "logo.png"));
+async function process({
+  poDetails,
+  vendorDetails,
+  itemDetails,
+  extra,
+  image,
+  billDetails,
+  shippingDetails,
+}) {
   const logo = await imageToBase64(image);
   const header = `
   <header style="
@@ -133,7 +111,7 @@ async function process() {
           font-weight: 700;
         "
       >
-        ${data.powo[0].buyersName}
+        ${poDetails.buyersName}
       </div> -->
       <div style="margin: 32px 22px; flex-grow: 1; display: flex; align-items: center;">
         <img
@@ -154,27 +132,27 @@ async function process() {
         <section style="">
           <div style="display: flex">
             <div style="width: 90px">Purchase Order#</div>
-            <div style="width: 150px">${data.powo[0].poNumber}</div>
+            <div style="width: 150px">: ${poDetails.poNumber}</div>
           </div>
           <div style="display: flex">
             <div style="width: 90px">Order Date</div>
-            <div style="width: 150px">${new Date(
-              data.powo[0].createdAt
+            <div style="width: 150px">: ${new Date(
+              poDetails.createdAt
             ).toDateString()}</div>
           </div>
           <div style="display: flex">
             <div style="width: 90px">Delivery Date</div>
-            <div style="width: 150px">${new Date(
-              data.powo[0].deliveryDate
+            <div style="width: 150px">: ${new Date(
+              poDetails.deliveryDate
             ).toDateString()}</div>
           </div>
           <div style="display: flex">
             <div style="width: 90px">Purchaser</div>
-            <div style="width: 150px">${data.powo[0].createdBy}</div>
+            <div style="width: 150px">: ${poDetails.createdBy}</div>
           </div>
           <div style="display: flex">
             <div style="width: 90px">Contact Details</div>
-            <div style="width: 150px">example@foo.com, 888222910</div>
+            <div style="width: 150px">: ${poDetails.contact}</div>
           </div>
         </section>
       </div>
@@ -199,10 +177,32 @@ async function process() {
     </footer>
   `;
 
-  const total = getTotalDataSet(tableData);
-  const midTotal = tableData.find((item) => item.Description === "Total");
-  const midTotalIndex = tableData.indexOf(midTotal);
-  tableData[midTotalIndex] = {
+  const templateConfig = {
+    // Bill:
+    bill_name: billDetails.name,
+    bill_address: billDetails.address,
+    bill_pincode: billDetails.pincode,
+    bill_gst: billDetails.gst,
+    // Vendor
+    vendor_name: vendorDetails.name,
+    vendor_address: vendorDetails.billingAddress,
+    vendor_pincode: vendorDetails.pincode,
+    vendor_gst: vendorDetails.gstin,
+    vendor_pan: vendorDetails.pan,
+    // Shipping
+    shipping_name: shippingDetails.name,
+    shipping_address: shippingDetails.address,
+    shipping_pincode: shippingDetails.pincode,
+    // Table items
+    table_items: [],
+    // Terms and condition
+    terms: extra.termsAndConditions.split("\n").map((term) => term.trim()),
+  };
+
+  const total = getTotalDataSet(itemDetails);
+  const midTotal = itemDetails.find((item) => item.Description === "Total");
+  const midTotalIndex = itemDetails.indexOf(midTotal);
+  itemDetails[midTotalIndex] = {
     ...midTotal,
     class: "mid-total",
   };
@@ -218,7 +218,7 @@ async function process() {
   await page.setContent(
     file({
       ...templateConfig,
-      table_items: [...tableData, ...total],
+      table_items: [...itemDetails, ...total],
     })
   );
   await page.evaluateHandle("document.fonts.ready");
@@ -239,4 +239,29 @@ async function process() {
   await browser.close();
 }
 
-process();
+process({
+  image: resolve(join("images", "logo.png")),
+  itemDetails: csvjson
+    .toObject(readFileSync(resolve(join("src", "data.csv"))).toString())
+    .map((item) => ({
+      ...item,
+      class: "",
+    })),
+  poDetails: data.powo[0],
+  vendorDetails: data.vendor.Vendors[0],
+  extra: {
+    termsAndConditions: data.powo[0].termsAndConditions,
+  },
+  billDetails: {
+    name: "Flipspaces Technology Labs Private Limited (UP)",
+    address:
+      "1st Floor, C-25, Sector -8, NOIDA, Gautam Buddha Nagar, Uttar Pradesh",
+    pincode: "201301",
+    gst: "09AACCF6130F1ZW",
+  },
+  shippingDetails: {
+    name: "GGG Reality",
+    address: "Raina tower, 1st floor, plot no -59, sec -136, Noida, 7409099890",
+    pincode: "201301",
+  },
+});
