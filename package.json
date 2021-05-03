@@ -21,6 +21,7 @@
     "image-to-base64": "^2.2.0",
     "lodash": "^4.17.21",
     "pdfmake": "^0.1.71",
-    "puppeteer": "^9.0.0"
+    "puppeteer": "^9.0.0",
+    "uuid": "^8.3.2"
   }
 }

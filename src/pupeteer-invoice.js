@@ -10,10 +10,12 @@ const { resolve, join } = require("path");
 const { getData } = require("./data-provider");
 const csvjson = require("csvjson");
 const imageToBase64 = require("image-to-base64");
+const { v4: uuid } = require("uuid");
 
 const data = getData();
 
-function getTotalDataSet(data) {
+// Generates the rows for the tax breakup
+function getTaxBreakupData(data) {
   const taxData = data
     .filter((item) => item["Description"] !== "Total")
     .map((item) => ({
@@ -23,8 +25,12 @@ function getTotalDataSet(data) {
   const taxableAmount = data.find((item) => item["Description"] === "Total")
     .Price;
   const totalAmount = data.find((item) => item["Description"] === "Total").Tax;
+
+  // Groups by percentages
   const grouped = _.groupBy(taxData, "Tax_percent");
   const rows = [];
+
+  // Generates two rows for each tax bracket
   Object.keys(grouped).map((key) => {
     const sum = grouped[key]
       .map((i) => i.Tax)
@@ -35,6 +41,7 @@ function getTotalDataSet(data) {
     const percent = parseFloat(key);
     if (isNaN(percent)) return;
 
+    // SGST
     rows.push({
       "#": "",
       Description: "",
@@ -46,6 +53,7 @@ function getTotalDataSet(data) {
       Total: (sum / 2).toFixed(2),
       class: "tax-breakdown",
     });
+    // CST
     rows.push({
       "#": "",
       Description: "",
@@ -84,7 +92,7 @@ function getTotalDataSet(data) {
   return rows;
 }
 
-async function process({
+async function generateInvoice({
   poDetails,
   vendorDetails,
   itemDetails,
@@ -94,6 +102,7 @@ async function process({
   shippingDetails,
 }) {
   const logo = await imageToBase64(image);
+  // Header and footer template for the PDF document
   const header = `
   <header style="
     font-family: Roboto, Inter, sans-serif;
@@ -177,6 +186,7 @@ async function process({
     </footer>
   `;
 
+  // Initialises the templating variables to be used in the HTML document
   const templateConfig = {
     // Bill:
     bill_name: billDetails.name,
@@ -199,13 +209,15 @@ async function process({
     terms: extra.termsAndConditions.split("\n").map((term) => term.trim()),
   };
 
-  const total = getTotalDataSet(itemDetails);
+  // Highlightes the middle total row
+  const total = getTaxBreakupData(itemDetails);
   const midTotal = itemDetails.find((item) => item.Description === "Total");
   const midTotalIndex = itemDetails.indexOf(midTotal);
   itemDetails[midTotalIndex] = {
     ...midTotal,
     class: "mid-total",
   };
+
   const file = template(
     (
       await fs.readFile(
@@ -213,6 +225,7 @@ async function process({
       )
     ).toString()
   );
+  // Initialises puppeteer
   const browser = await puppeteer.launch();
   const page = await browser.newPage();
   await page.setContent(
@@ -223,8 +236,10 @@ async function process({
   );
   await page.evaluateHandle("document.fonts.ready");
 
+  const createdPath = resolve(join("docs", `${uuid()}.pdf`));
+  // Generates pdf
   await page.pdf({
-    path: "pup-doc.pdf",
+    path: createdPath,
     format: "a4",
     margin: {
       top: "200px",
@@ -236,32 +251,12 @@ async function process({
     footerTemplate: footer,
     displayHeaderFooter: true,
   });
+
+  // Cleanup
   await browser.close();
+
+  // End
+  return createdPath;
 }
 
-process({
-  image: resolve(join("images", "logo.png")),
-  itemDetails: csvjson
-    .toObject(readFileSync(resolve(join("src", "data.csv"))).toString())
-    .map((item) => ({
-      ...item,
-      class: "",
-    })),
-  poDetails: data.powo[0],
-  vendorDetails: data.vendor.Vendors[0],
-  extra: {
-    termsAndConditions: data.powo[0].termsAndConditions,
-  },
-  billDetails: {
-    name: "Flipspaces Technology Labs Private Limited (UP)",
-    address:
-      "1st Floor, C-25, Sector -8, NOIDA, Gautam Buddha Nagar, Uttar Pradesh",
-    pincode: "201301",
-    gst: "09AACCF6130F1ZW",
-  },
-  shippingDetails: {
-    name: "GGG Reality",
-    address: "Raina tower, 1st floor, plot no -59, sec -136, Noida, 7409099890",
-    pincode: "201301",
-  },
-});
+module.exports = generateInvoice;
