@@ -7,12 +7,8 @@ const puppeteer = require("puppeteer");
 const { template, ..._ } = require("lodash");
 const { promises: fs, readFileSync } = require("fs");
 const { resolve, join } = require("path");
-const { getData } = require("./data-provider");
-const imageToBase64 = require("image-to-base64");
 const { v4: uuid } = require("uuid");
 const imgDataUri = require("image-data-uri");
-
-const data = getData();
 
 function generateTable({ headers, rows }, taxBreakUps) {
   function generateClass(header) {
@@ -302,34 +298,5 @@ async function generateInvoice({
   // End
   return createdPath;
 }
-
-const sample = [
-  {
-    ID: 0,
-    Name: "boq_item_1",
-    Description: "This is the item description",
-    Unit: "grams",
-    Make: "NA",
-    Quantity: 10,
-    Price: 180,
-    Total: 1800,
-  },
-  {
-    ID: 1,
-    Name: "boq_item_9",
-    Description: "This is the item description",
-    Unit: "grams",
-    Make: "NA",
-    Quantity: 90,
-    Price: 900,
-    Total: 81000,
-  },
-];
-const table = {
-  headers: Object.keys(sample[0]),
-  rows: sample.map((row) => Object.values(row)),
-};
-
-generateInvoice({ table });
 
 module.exports = generateInvoice;
