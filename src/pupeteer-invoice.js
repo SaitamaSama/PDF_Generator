@@ -28,21 +28,46 @@ function generateTable({ headers, rows }, taxBreakUps) {
   const taxBreakupRows = Object.keys(taxBreakUps)
     .map((taxBracket) => {
       const length = headers.length;
+      const highlightClass = taxBracket.toLowerCase().includes("total")
+        ? "t-highlight"
+        : "";
       if (length < 2)
         throw new Error("Cannot produce table with less than two columns");
       return `
     <tr>
-      ${Array.from(new Array(length - 2), () => "<td></td>").join("\n")}
-      <td>
+      ${Array.from(
+        new Array(length - 2),
+        () => `<td class="${highlightClass}"></td>`
+      ).join("\n")}
+      <td class="t-price ${highlightClass}">
         ${taxBracket}
       </td>
-      <td>
+      <td class="t-total ${highlightClass}">
         ${taxBreakUps[taxBracket]}
       </td>
     </tr>
     `;
     })
     .join("\n");
+
+  const parsedRows = rows.map((row) => row.map((item) => parseFloat(item)));
+  const accumulator = {};
+  parsedRows.forEach((row) => {
+    row.forEach((item, index) => {
+      if (isNaN(item)) return;
+      const prevSum = accumulator[index];
+      if (!prevSum) accumulator[index] = item;
+      else accumulator[index] += item;
+    });
+  });
+  const totalRow = Array.from(new Array(headers.length), (curr, index) => {
+    if (index === 0) {
+      return `<td class="t-highlight"></td>`;
+    }
+    const accValue = accumulator[index];
+    if (isNaN(accValue)) return `<td class="t-highlight t-price"></td>`;
+    return `<td class="t-highlight a-right t-total">${accValue}</td>`;
+  }).join("\n");
 
   const tbody = `
   <tbody>
@@ -57,9 +82,10 @@ function generateTable({ headers, rows }, taxBreakUps) {
                 `<td class="${generateClass(headers[idx])}">${value}</td>`
             )
             .join("\n")}
-        </tr>`
+          </tr>`
       )
       .join("\n")}
+      ${totalRow}
       ${taxBreakupRows}
   </tbody>
   `;
@@ -139,6 +165,7 @@ async function generateInvoice({
     "SGST@4.5%": "100",
     "CST@4.5%": "100",
     "Taxable Amount": "200",
+    "Total Amount": "90000",
   },
 }) {
   // Header and footer template for the PDF document
@@ -298,5 +325,33 @@ async function generateInvoice({
   // End
   return createdPath;
 }
+
+const data = [
+  {
+    ID: 0,
+    Name: "boq_item_1",
+    Description: "This is the item description",
+    Unit: "grams",
+    Make: "NA",
+    Quantity: 10,
+    Price: 180,
+    Total: 1800,
+  },
+  {
+    ID: 1,
+    Name: "boq_item_9",
+    Description: "This is the item description",
+    Unit: "grams",
+    Make: "NA",
+    Quantity: 90,
+    Price: 900,
+    Total: 81000,
+  },
+];
+const table = {
+  headers: Object.keys(data[0]),
+  rows: data.map((row) => Object.values(row)),
+};
+generateInvoice({ table });
 
 module.exports = generateInvoice;
