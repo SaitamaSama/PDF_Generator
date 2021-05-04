@@ -10,6 +10,7 @@ const { resolve, join } = require("path");
 const { getData } = require("./data-provider");
 const imageToBase64 = require("image-to-base64");
 const { v4: uuid } = require("uuid");
+const imgDataUri = require("image-data-uri");
 
 const data = getData();
 
@@ -108,7 +109,10 @@ async function generateInvoice({
   extra = {
     termsAndConditions: "",
   },
-  image = "images/logo.png",
+  image = {
+    url: "https://i.imgur.com/JVo5CYH.png",
+    // file: "",
+  },
   billDetails = {
     name: "",
     address: "",
@@ -141,7 +145,6 @@ async function generateInvoice({
     "Taxable Amount": "200",
   },
 }) {
-  const logo = await imageToBase64(image);
   // Header and footer template for the PDF document
   const header = `
   <header style="
@@ -152,25 +155,35 @@ async function generateInvoice({
     border-bottom: none;
     margin-left: 18px;
   ">
-      <!--<div
-        style="
-          font-size: 18px;
-          margin: 32px 22px;
-          flex-grow: 1;
-          font-weight: 700;
-        "
-      >
-        ${poDetails.buyersName}
-      </div> -->
-      <div style="margin: 32px 22px; flex-grow: 1; display: flex; align-items: center;">
-        <img
+      ${
+        image
+          ? `<div style="margin: 32px 22px; flex-grow: 1; display: flex; align-items: center;">
+          <img
+            style="
+              max-width: 175px;
+              height: 25px;
+            "
+            src="
+              ${
+                image.file
+                  ? await imgDataUri.encodeFromFile(readFileSync(image.file))
+                  : await imgDataUri.encodeFromURL(image.url)
+              }
+            "
+          />
+        </div>`
+          : `<div
           style="
-            max-width: 175px;
-            height: 25px;
+            font-size: 18px;
+            margin: 32px 22px;
+            flex-grow: 1;
+            font-weight: 700;
           "
-          src="data:image/${image.split(".").pop()};base64,${logo}"
-        />
-      </div>
+        >
+          ${poDetails.buyersName}
+        </div>`
+      }
+      
       <div
         style="
           font-size: 7px;
@@ -290,6 +303,33 @@ async function generateInvoice({
   return createdPath;
 }
 
-generateInvoice({});
+const sample = [
+  {
+    ID: 0,
+    Name: "boq_item_1",
+    Description: "This is the item description",
+    Unit: "grams",
+    Make: "NA",
+    Quantity: 10,
+    Price: 180,
+    Total: 1800,
+  },
+  {
+    ID: 1,
+    Name: "boq_item_9",
+    Description: "This is the item description",
+    Unit: "grams",
+    Make: "NA",
+    Quantity: 90,
+    Price: 900,
+    Total: 81000,
+  },
+];
+const table = {
+  headers: Object.keys(sample[0]),
+  rows: sample.map((row) => Object.values(row)),
+};
+
+generateInvoice({ table });
 
 module.exports = generateInvoice;
