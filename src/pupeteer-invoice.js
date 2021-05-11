@@ -229,7 +229,7 @@ async function generateInvoice({
     termsAndConditions: "",
   },
   image = {
-    url: "https://i.imgur.com/JVo5CYH.png",
+    url: "https://mysite-user-images.s3.ap-south-1.amazonaws.com/1620284314416",
     // file: "",
   },
   billDetails = {
@@ -285,11 +285,11 @@ async function generateInvoice({
   ">
       ${
         image
-          ? `<div style="margin: 32px 22px; flex-grow: 1; display: flex; align-items: center;">
+          ? `<div style="margin: 32px 22px; min-width: 175px; max-width: 175px; flex-grow: 1; display: flex; align-items: center;">
           <img
             style="
               max-width: 175px;
-              height: 25px;
+              height: 50px;
             "
             src="
               ${
@@ -305,7 +305,7 @@ async function generateInvoice({
             font-size: 18px;
             margin: 32px 22px;
             flex-grow: 1;
-            font-weight: 700; 
+            font-weight: 700; min-width: 175px;
           "
         >
           ${poDetails.buyersName}
@@ -314,12 +314,12 @@ async function generateInvoice({
       
       <div
         style="
-          font-size: 7px;
+          font-size: 8px;
           margin: 32px 38px;
           line-height: 2;
         "
       >
-        <section style="margin-left: 75px;">
+        <section style="margin-left: 69px;">
           <div style="display: flex">
             <div style="width: 90px">Purchase Order#</div>
             <div style="width: 150px">: ${poDetails.poNumber ?? "No data"}</div>
