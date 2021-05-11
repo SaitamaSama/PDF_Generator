@@ -225,21 +225,7 @@
         </section>
       </section>
       <section class="row table-container">
-        <%= data_table %> <%= payment_terms_table %>
-        <table class="data-table terms">
-          <thead>
-            <tr>
-              <th style="text-align: left">Terms and Conditions</th>
-            </tr>
-          </thead>
-          <tbody>
-            <% _.forEach(terms, function (term) { %>
-            <tr>
-              <td class="t-r-term-and-c"><%- term %></td>
-            </tr>
-            <% }); %>
-          </tbody>
-        </table>
+        <%= data_table %> <%= payment_terms_table %> <%= terms_table %>
       </section>
     </main>
   </body>

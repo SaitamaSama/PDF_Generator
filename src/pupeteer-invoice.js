@@ -174,6 +174,27 @@ function generatePaymentTermsTable(paymentTerms) {
   `;
 }
 
+function generateTermsTable(terms) {
+  if (terms.filter((term) => term.length !== 0).length === 0) return "";
+  return `
+  <table class="data-table terms">
+    <thead>
+      <tr>
+        <th style="text-align: left">Terms and Conditions</th>
+      </tr>
+    </thead>
+    <tbody>
+    ${terms.map(
+      (term) =>
+        `<tr>
+        <td class="t-r-term-and-c">${term}</td>
+      </tr>`
+    )}
+    </tbody>
+  </table>
+  `;
+}
+
 async function generateInvoice({
   poDetails = {
     buyersName: "",
@@ -301,27 +322,33 @@ async function generateInvoice({
         <section style="margin-left: 75px;">
           <div style="display: flex">
             <div style="width: 90px">Purchase Order#</div>
-            <div style="width: 150px">: ${poDetails.poNumber}</div>
+            <div style="width: 150px">: ${poDetails.poNumber ?? "No data"}</div>
           </div>
           <div style="display: flex">
             <div style="width: 90px">Order Date</div>
-            <div style="width: 150px">: ${new Date(
+            <div style="width: 150px">: ${
               poDetails.createdAt
-            ).toDateString()}</div>
+                ? new Date(poDetails.createdAt).toDateString()
+                : "No data"
+            }</div>
           </div>
           <div style="display: flex">
             <div style="width: 90px">Delivery Date</div>
-            <div style="width: 150px">: ${new Date(
+            <div style="width: 150px">: ${
               poDetails.deliveryDate
-            ).toDateString()}</div>
+                ? new Date(poDetails.deliveryDate).toDateString()
+                : "No data"
+            }</div>
           </div>
           <div style="display: flex">
             <div style="width: 90px">Purchaser</div>
-            <div style="width: 150px">: ${poDetails.createdBy}</div>
+            <div style="width: 150px">: ${
+              poDetails.createdBy ?? "No data"
+            }</div>
           </div>
           <div style="display: flex">
             <div style="width: 90px">Contact Details</div>
-            <div style="width: 150px">: ${poDetails.contact}</div>
+            <div style="width: 150px">: ${poDetails.contact ?? "No data"}</div>
           </div>
         </section>
       </div>
@@ -375,6 +402,9 @@ async function generateInvoice({
     // Table items
     data_table: generateTable(table, taxBreakups),
     payment_terms_table: generatePaymentTermsTable(paymentTerms),
+    terms_table: generateTermsTable(
+      extra.termsAndConditions.split("\n").map((term) => term.trim())
+    ),
     // Terms and condition
     terms: extra.termsAndConditions.split("\n").map((term) => term.trim()),
   };
