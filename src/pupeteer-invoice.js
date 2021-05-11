@@ -352,18 +352,26 @@ async function generateInvoice({
     // Bill:
     bill_name: billDetails.name,
     bill_address: billDetails.address,
-    bill_pincode: billDetails.pincode,
-    bill_gst: billDetails.gst,
+    bill_pincode: billDetails.pincode
+      ? `Pin Code - ${billDetails.pincode}`
+      : "",
+    bill_gst: billDetails.gst ? `GST - ${billDetails.gst}` : "",
     // Vendor
     vendor_name: vendorDetails.name,
     vendor_address: vendorDetails.billingAddress,
-    vendor_pincode: vendorDetails.pincode,
-    vendor_gst: vendorDetails.gstin,
-    vendor_pan: vendorDetails.pan,
+    vendor_pincode: vendorDetails.pincode
+      ? `Pin Code - ${vendorDetails.pincode}`
+      : "",
+    vendor_gst: vendorDetails.gstin
+      ? `GST- ${bilvendorDetailslDetails.gstin}`
+      : "",
+    vendor_pan: vendorDetails.pan ? `PAN - ${vendorDetails.pan}` : "",
     // Shipping
     shipping_name: shippingDetails.name,
     shipping_address: shippingDetails.address,
-    shipping_pincode: shippingDetails.pincode,
+    shipping_pincode: shippingDetails.pincode
+      ? `Pin Code - ${shippingDetails.pincode}`
+      : "",
     // Table items
     data_table: generateTable(table, taxBreakups),
     payment_terms_table: generatePaymentTermsTable(paymentTerms),

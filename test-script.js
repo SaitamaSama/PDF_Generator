@@ -26,4 +26,8 @@ const table = {
   headers: Object.keys(data[0]),
   rows: data.map((row) => Object.values(row)),
 };
-generateInvoice({ table });
+generateInvoice({
+  table,
+  poDetails: { buyersName: "Buyer Name" },
+  vendorDetails: { name: "OMG", pincode: "622011" },
+});
