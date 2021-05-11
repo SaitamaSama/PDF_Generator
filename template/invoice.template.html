@@ -118,6 +118,32 @@
       .ml {
         margin-left: 63px;
       }
+      .invis {
+        color: transparent;
+      }
+      .pr {
+        padding-right: 8px;
+      }
+      .payment-terms {
+        table-layout: fixed;
+        margin-top: 24px;
+      }
+      .expand-col {
+        width: 71.39%;
+        text-align: left;
+        padding-left: 8px !important;
+      }
+      .t-term,
+      .t-percent {
+        text-align: right !important;
+        padding-right: 8px !important;
+      }
+      .t-term {
+        width: 19.546891464699683877766069546891%;
+      }
+      .t-percent {
+        width: 9.051633298208640674394099051633%;
+      }
     </style>
   </head>
   <body>
@@ -199,7 +225,7 @@
         </section>
       </section>
       <section class="row table-container">
-        <%= data_table %>
+        <%= data_table %> <%= payment_terms_table %>
         <table class="data-table terms">
           <thead>
             <tr>

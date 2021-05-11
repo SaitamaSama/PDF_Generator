@@ -1,8 +1,3 @@
-// import puppeteer, { PDFMargin } from "puppeteer";
-// import { template } from "lodash";
-// import { promises as fs } from "fs";
-// import { resolve, join } from "path";
-// import { getData } from "./data-provider";
 const puppeteer = require("puppeteer");
 const { template, ..._ } = require("lodash");
 const { promises: fs, readFileSync } = require("fs");
@@ -87,7 +82,9 @@ function generateTable({ headers, rows }, taxBreakUps) {
             .filter((col) => col !== "class")
             .map(
               (value, idx) =>
-                `<td class="${generateClass(headers[idx])}">${value}</td>`
+                `<td class="${generateClass(headers[idx])}">${
+                  idx === 0 ? value + 1 : value
+                }</td>`
             )
             .join("\n")}
           </tr>`
@@ -100,6 +97,77 @@ function generateTable({ headers, rows }, taxBreakUps) {
 
   return `
   <table class="data-table">
+    ${thead}
+    ${tbody}
+  </table>
+  `;
+}
+
+function generatePaymentTermsTable(paymentTerms) {
+  const thead = `
+  <thead>
+    <tr>
+      ${[
+        '<th class="expand-col">Payment Terms</th>',
+        '<th class="t-term">Term</th>',
+        '<th class="t-percent">Percent</th>',
+      ].join("\n")}
+    </tr>
+  </thead>
+  `;
+
+  const rows = [];
+
+  if (
+    paymentTerms.paymentAfterInvoice === null &&
+    paymentTerms.paymentAfterInvoiceDays === null &&
+    paymentTerms.paymentAtDelivery === null &&
+    paymentTerms.paymentBeforeDelivery === null
+  ) {
+    const customPaymet = JSON.parse(paymentTerms.customPaymentTerms);
+    customPaymet.forEach((item) => {
+      rows.push(`
+      <tr>
+        <td class="expand-col"></td>
+        <td class="t-term">${item.term}</td>
+        <td class="t-percent">${item.percent}%</td>
+      </tr>
+      `);
+    });
+  } else {
+    rows.push(`
+    <tr>
+      <td class="expand-col"></td>
+      <td class="t-term">Advance Payment</td>
+      <td class="t-percent">${paymentTerms.paymentBeforeDelivery ?? 0}%</td>
+    </tr>
+    `);
+    rows.push(`
+    <tr>
+      <td class="expand-col"></td>
+      <td class="t-term">Payment at delivery</td>
+      <td class="t-percent">${paymentTerms.paymentAtDelivery ?? 0}%</td>
+    </tr>
+    `);
+    rows.push(`
+    <tr>
+      <td class="expand-col"></td>
+      <td class="t-term">Payment ${
+        paymentTerms.paymentAfterInvoiceDays ?? 0
+      } days after invoice</td>
+      <td class="t-percent">${paymentTerms.paymentAfterInvoice ?? 0}%</td>
+    </tr>
+    `);
+  }
+
+  const tbody = `
+  <tbody>
+    ${rows.join("\n")}
+  </tbody>
+  `;
+
+  return `
+  <table class="data-table payment-terms">
     ${thead}
     ${tbody}
   </table>
@@ -174,6 +242,14 @@ async function generateInvoice({
     "CST@4.5%": "100",
     "Taxable Amount": "200",
     "Total Amount": "90000",
+  },
+  paymentTerms = {
+    paymentAfterInvoice: null,
+    paymentAfterInvoiceDays: null,
+    paymentAtDelivery: null,
+    paymentBeforeDelivery: null,
+    customPaymentTerms:
+      '[{"term":"Advance payment","percent":"15"},{"term":"After delivery ","percent":"85"}]',
   },
 }) {
   // Header and footer template for the PDF document
@@ -290,6 +366,7 @@ async function generateInvoice({
     shipping_pincode: shippingDetails.pincode,
     // Table items
     data_table: generateTable(table, taxBreakups),
+    payment_terms_table: generatePaymentTermsTable(paymentTerms),
     // Terms and condition
     terms: extra.termsAndConditions.split("\n").map((term) => term.trim()),
   };
