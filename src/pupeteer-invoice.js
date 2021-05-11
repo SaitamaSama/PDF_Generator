@@ -19,7 +19,12 @@ function generateTable({ headers, rows }, taxBreakUps) {
   <thead>
     <tr>
       ${headers
-        .map((header) => `<th class="${generateClass(header)}">${header}</th>`)
+        .map(
+          (header) =>
+            `<th class="${generateClass(header)}">${
+              header === "ID" ? "#" : header
+            }</th>`
+        )
         .join("\n")}
     </tr>
   </thead>
@@ -34,18 +39,18 @@ function generateTable({ headers, rows }, taxBreakUps) {
       if (length < 2)
         throw new Error("Cannot produce table with less than two columns");
       return `
-    <tr>
-      ${Array.from(
-        new Array(length - 2),
-        () => `<td class="${highlightClass}"></td>`
-      ).join("\n")}
-      <td class="t-price ${highlightClass}">
-        ${taxBracket}
-      </td>
-      <td class="t-total ${highlightClass}">
-        ${taxBreakUps[taxBracket]}
-      </td>
-    </tr>
+      <tr>
+        ${Array.from(
+          new Array(length - 2),
+          () => `<td class="${highlightClass}"></td>`
+        ).join("\n")}
+        <td class="t-price ${highlightClass}">
+          ${taxBracket}
+        </td>
+        <td class="t-total ${highlightClass}">
+          ${taxBreakUps[taxBracket]}
+        </td>
+      </tr>
     `;
     })
     .join("\n");
@@ -63,6 +68,9 @@ function generateTable({ headers, rows }, taxBreakUps) {
   const totalRow = Array.from(new Array(headers.length), (curr, index) => {
     if (index === 0) {
       return `<td class="t-highlight"></td>`;
+    }
+    if (index === 1) {
+      return `<td class="t-highlight t-name">Total</td>`;
     }
     const accValue = accumulator[index];
     if (isNaN(accValue)) return `<td class="t-highlight t-price"></td>`;
@@ -200,7 +208,7 @@ async function generateInvoice({
             font-size: 18px;
             margin: 32px 22px;
             flex-grow: 1;
-            font-weight: 700;
+            font-weight: 700; 
           "
         >
           ${poDetails.buyersName}
@@ -214,7 +222,7 @@ async function generateInvoice({
           line-height: 2;
         "
       >
-        <section style="">
+        <section style="margin-left: 75px;">
           <div style="display: flex">
             <div style="width: 90px">Purchase Order#</div>
             <div style="width: 150px">: ${poDetails.poNumber}</div>
@@ -245,6 +253,7 @@ async function generateInvoice({
     `;
   const footer = `
     <footer style="
+      font-family: Roboto, Inter, sans-serif;
       font-size: 6px;
       color: #E7E6E6;
       width: 557px;
@@ -310,7 +319,7 @@ async function generateInvoice({
     format: "a4",
     margin: {
       top: "200px",
-      bottom: "45px",
+      bottom: "55px",
       right: "25px",
       left: "25px",
     },

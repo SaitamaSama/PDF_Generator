@@ -67,12 +67,17 @@
       .t-desc {
         width: 40%;
       }
+      .t-description,
+      .t-name,
+      .t-make {
+        text-align: left;
+      }
       .t-quantity,
       .t-price,
       .t-tax,
       .t-total {
         text-align: right;
-        padding-right: 8px;
+        padding-right: 8px !important;
       }
       .t-id {
         width: 5%;
@@ -109,6 +114,9 @@
       }
       .a-right {
         text-align: right;
+      }
+      .ml {
+        margin-left: 63px;
       }
     </style>
   </head>
@@ -168,7 +176,7 @@
             <div class="line">GST - <%= bill_gst %></div>
           </section>
         </section>
-        <section class="col">
+        <section class="col ml">
           <header class="sec-title">Vendor details</header>
           <section class="details">
             <div class="line"><%= vendor_name %></div>
@@ -181,7 +189,7 @@
       </section>
       <section class="row">
         <section class="col"></section>
-        <section class="col">
+        <section class="col ml">
           <header class="sec-title">Shipping address</header>
           <section class="details">
             <div class="line"><%= shipping_name %></div>
