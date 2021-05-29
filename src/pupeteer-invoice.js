@@ -177,6 +177,9 @@ function generatePaymentTermsTable(paymentTerms) {
 function generateTermsTable(terms) {
   if (terms.filter((term) => term.length !== 0).length === 0) return "";
   return `
+  <section class="info">
+  Please read the terms and conditions in this document and other attachments that may accompany the communication
+  </section>
   <table class="data-table terms">
     <thead>
       <tr>
@@ -184,12 +187,14 @@ function generateTermsTable(terms) {
       </tr>
     </thead>
     <tbody>
-    ${terms.map(
-      (term) =>
-        `<tr>
+    ${terms
+      .map(
+        (term) =>
+          `<tr>
         <td class="t-r-term-and-c">${term}</td>
       </tr>`
-    )}
+      )
+      .join("\n")}
     </tbody>
   </table>
   `;
@@ -405,8 +410,6 @@ async function generateInvoice({
     terms_table: generateTermsTable(
       extra.termsAndConditions.split("\n").map((term) => term.trim())
     ),
-    // Terms and condition
-    terms: extra.termsAndConditions.split("\n").map((term) => term.trim()),
   };
 
   const file = template(

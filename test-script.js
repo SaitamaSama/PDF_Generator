@@ -30,4 +30,7 @@ generateInvoice({
   table,
   poDetails: { buyersName: "Buyer Name" },
   vendorDetails: { name: "OMG", pincode: "622011" },
+  extra: {
+    termsAndConditions: "Ok mb\nhaha\nhey",
+  },
 });
