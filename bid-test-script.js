@@ -5,7 +5,7 @@ const bidDetails = {
     status: "completed",
     isActive: true,
     isDeleted: false,
-    attachments: [],
+    attachments: ["https://keyboardchecker.com/"],
     associatedBank: [
       {
         accountNumber: "11324124",
@@ -82,6 +82,7 @@ const bidDetails = {
     finalPrice: 10679,
     signImageUrl:
       "https://www.meckeys.com/wp-content/uploads/2021/06/Flamingo_keycaps_T01WA201.jpg",
+    termsAndConditions: "Okay please pay me by time alright? OwO UwU!!",
   },
   items: [
     {

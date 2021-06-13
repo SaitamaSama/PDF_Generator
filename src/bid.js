@@ -61,7 +61,7 @@ function generateTable({ headers, rows }, taxBreakUps) {
     });
   });
   const totalRow = Array.from(new Array(headers.length), (curr, index) => {
-    if (index === 0) {
+    if (index === 0 || index === 2 || index === 3 || index === 4) {
       return `<td class="t-highlight"></td>`;
     }
     if (index === 1) {
@@ -109,32 +109,6 @@ function generateTable({ headers, rows }, taxBreakUps) {
   `;
 }
 
-function generateTermsTable(terms) {
-  if (terms.filter((term) => term.length !== 0).length === 0) return "";
-  return `
-  <section class="info">
-  Please read the terms and conditions in this document and other attachments that may accompany the communication
-  </section>
-  <table class="data-table terms">
-    <thead>
-      <tr>
-        <th style="text-align: left">Terms and Conditions</th>
-      </tr>
-    </thead>
-    <tbody>
-    ${terms
-      .map(
-        (term) =>
-          `<tr>
-        <td class="t-r-term-and-c">${term}</td>
-      </tr>`
-      )
-      .join("\n")}
-    </tbody>
-  </table>
-  `;
-}
-
 function generateAttachments(attachments) {
   if (attachments.length === 0) return "";
   return `
@@ -152,9 +126,6 @@ function generateAttachments(attachments) {
 
 async function generateBid({
   bid,
-  extra = {
-    termsAndConditions: "",
-  },
   image = {
     url: "https://mysite-user-images.s3.ap-south-1.amazonaws.com/1620284314416",
     // file: "",
@@ -288,9 +259,6 @@ async function generateBid({
     vendor_pan: bid.idVendor.pan ? `PAN - ${bid.idVendor.pan}` : "",
     // Table items
     data_table: generateTable(table, taxBreakups),
-    terms_table: generateTermsTable(
-      extra.termsAndConditions.split("\n").map((term) => term.trim())
-    ),
     quotation_date: `Quotation Date - ${new Date().toDateString()}`,
     // Bank details,
     account_number: `Account number - ${bid.associatedBank[0].accountNumber}`,
@@ -301,6 +269,13 @@ async function generateBid({
     sign_image: bid.signImageUrl,
     // Attachments
     attachments: generateAttachments(bid.attachments),
+    terms_and_conditions:
+      bid.termsAndConditions && bid.termsAndConditions.length !== 0
+        ? `
+      <header class="sec-title">Terms and conditions</header>
+      <section class="details">${bid.termsAndConditions}</section>
+      `
+        : "",
   };
 
   const file = template(

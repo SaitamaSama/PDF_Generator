@@ -163,6 +163,11 @@
         justify-content: center;
         flex-direction: column;
       }
+      a {
+        color: #1890ff;
+        margin: 6px 0;
+        text-decoration: none;
+      }
     </style>
   </head>
   <body>
@@ -230,9 +235,7 @@
           </section>
         </section>
       </section>
-      <section class="row table-container">
-        <%= data_table %> <%= terms_table %>
-      </section>
+      <section class="row table-container"><%= data_table %></section>
       <section class="row">
         <section class="col">
           <header class="sec-title">Bank Details</header>
@@ -242,7 +245,7 @@
             <div class="line"><%= account_holder %></div>
             <div class="line"><%= branch_name %></div>
           </section>
-          <%= attachments %>
+          <%= attachments %> <%= terms_and_conditions %>
         </section>
         <section class="col align-center">
           <img src="<%= sign_image %>" class="sign-image" alt="sign image" />
