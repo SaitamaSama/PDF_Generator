@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <link rel="preconnect" href="https://fonts.gstatic.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap"
+      rel="stylesheet"
+    />
+
+    <title>Invoice</title>
+
+    <style>
+      * {
+        font-family: Roboto, sans-serif;
+        -webkit-print-color-adjust: exact;
+      }
+      body {
+        margin: 0;
+        font-size: 10px;
+        line-height: 1.6;
+        /* border: 1px solid #e7e6e6; */
+        border-top: none;
+        border-bottom: none;
+      }
+      thead {
+        display: table-header-group;
+        break-inside: avoid;
+      }
+      .row {
+        display: grid;
+        padding: 15px 30px;
+        grid-template-columns: 1fr 1fr;
+        border-top: 1px solid #e7e6e6;
+        border-bottom: 1px solid #e7e6e6;
+      }
+      .row.table-container {
+        display: block;
+        padding: 15px 10px;
+      }
+      .row:not(:first-child) {
+        border-top: none;
+      }
+      .sec-title {
+        font-weight: 700;
+      }
+      .line {
+        margin: 6px 0;
+      }
+      .data-table {
+        width: 100%;
+        border-spacing: 0;
+        border: 1px solid #e7e6e6;
+      }
+      .data-table thead,
+      .t-highlight {
+        background-color: #e7e6e6;
+        font-weight: 700;
+      }
+      .data-table th {
+        border: none;
+        padding: 4px 0;
+      }
+      /* .t-desc {
+        width: 40%;
+      } */
+      .t-description,
+      .t-name,
+      .t-make {
+        text-align: left;
+      }
+      .t-quantity,
+      .t-price,
+      .t-tax,
+      .t-total,
+      .t-amount,
+      .t-discount {
+        text-align: right;
+        padding-right: 8px !important;
+      }
+      .t-id {
+        width: 5%;
+        text-align: center;
+      }
+      .t-unit {
+        text-align: center;
+      }
+      td {
+        border-bottom: 1px solid #e7e6e6;
+        color: #333;
+      }
+      .terms {
+        margin-top: 24px;
+        border: none;
+      }
+      .terms td {
+        border-bottom: none;
+        padding-left: 8px;
+      }
+      .terms th {
+        padding-left: 8px;
+      }
+      .tax-breakdown {
+        border-bottom: none;
+        padding: 3px 8px 3px 0;
+      }
+      .total-end,
+      .mid-total {
+        background-color: #e7e6e6;
+        font-weight: 500;
+        padding-top: 4px;
+        padding-bottom: 4px;
+      }
+      .a-right {
+        text-align: right;
+      }
+      .ml {
+        margin-left: 63px;
+      }
+      .invis {
+        color: transparent;
+      }
+      .pr {
+        padding-right: 8px;
+      }
+      .payment-terms {
+        table-layout: fixed;
+        margin-top: 24px;
+      }
+      .expand-col {
+        width: 71.39%;
+        text-align: left;
+        padding-left: 8px !important;
+      }
+      .t-term,
+      .t-percent {
+        text-align: right !important;
+        padding-right: 8px !important;
+      }
+      td,
+      th {
+        padding: 8px 10px !important;
+      }
+      .info {
+        font-size: 9px;
+        margin: 12px 0;
+        padding: 6px;
+        background: #e7e6e6;
+      }
+      .sign-image {
+        max-width: 140px;
+        max-height: 90px;
+        height: auto;
+        width: auto;
+        margin-bottom: 12px;
+      }
+      .align-center {
+        display: flex;
+        align-items: flex-end;
+        justify-content: center;
+        flex-direction: column;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- <header style="font-family: Roboto, sans-serif; display: flex">
+      <div
+        style="
+          font-size: 24px;
+          margin: 24px;
+          width: calc(50% - 48px);
+          max-width: 50%;
+        "
+      >
+        Brand Name
+      </div>
+      <div
+        style="
+          font-size: 12px;
+          margin: 24px;
+          width: 50%;
+          max-width: 50%;
+          line-height: 1.6;
+        "
+      >
+        <section style="">
+          <div style="display: flex">
+            <div style="width: 30%">Purchase Order#</div>
+            <div style="width: 70%">ordernumber</div>
+          </div>
+          <div style="display: flex">
+            <div style="width: 30%">Order Date</div>
+            <div style="width: 70%">orderdate</div>
+          </div>
+          <div style="display: flex">
+            <div style="width: 30%">Delivery Date</div>
+            <div style="width: 70%">deliverydate</div>
+          </div>
+          <div style="display: flex">
+            <div style="width: 30%">Purchaser</div>
+            <div style="width: 70%">purchaser</div>
+          </div>
+          <div style="display: flex">
+            <div style="width: 30%">Contact Details</div>
+            <div style="width: 70%">contact</div>
+          </div>
+        </section>
+      </div>
+    </header> -->
+    <main>
+      <section class="row">
+        <section class="col">
+          <header class="sec-title">Bid Details</header>
+          <section class="details"><%= bid_desc %></section>
+          <section class="details">
+            <div class="line"><%= quotation_date %></div>
+          </section>
+        </section>
+        <section class="col ml">
+          <header class="sec-title">Vendor details</header>
+          <section class="details">
+            <div class="line"><%= vendor_name %></div>
+            <div class="line"><%= vendor_address %></div>
+            <div class="line"><%= vendor_pincode %></div>
+            <div class="line"><%= vendor_gst %></div>
+            <div class="line"><%= vendor_pan %></div>
+          </section>
+        </section>
+      </section>
+      <section class="row table-container">
+        <%= data_table %> <%= terms_table %>
+      </section>
+      <section class="row">
+        <section class="col">
+          <header class="sec-title">Bank Details</header>
+          <section class="details">
+            <div class="line"><%= account_number %></div>
+            <div class="line"><%= ifsc_code %></div>
+            <div class="line"><%= account_holder %></div>
+            <div class="line"><%= branch_name %></div>
+          </section>
+          <%= attachments %>
+        </section>
+        <section class="col align-center">
+          <img src="<%= sign_image %>" class="sign-image" alt="sign image" />
+          <span> Authorised signatory for <%= vendor_name %> </span>
+        </section>
+      </section>
+    </main>
+  </body>
+</html>
