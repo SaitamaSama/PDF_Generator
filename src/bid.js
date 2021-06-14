@@ -25,30 +25,30 @@ function generateTable({ headers, rows }, taxBreakUps) {
   </thead>
   `;
 
-  const taxBreakupRows = Object.keys(taxBreakUps)
-    .map((taxBracket) => {
-      const length = headers.length;
-      const highlightClass = taxBracket.toLowerCase().includes("total")
-        ? "t-highlight"
-        : "";
-      if (length < 2)
-        throw new Error("Cannot produce table with less than two columns");
-      return `
-      <tr>
-        ${Array.from(
-          new Array(length - 2),
-          () => `<td class="${highlightClass}"></td>`
-        ).join("\n")}
-        <td class="t-price ${highlightClass}">
-          ${taxBracket}
-        </td>
-        <td class="t-total ${highlightClass}">
-          ${taxBreakUps[taxBracket]}
-        </td>
-      </tr>
-    `;
-    })
-    .join("\n");
+  // const taxBreakupRows = Object.keys(taxBreakUps)
+  //   .map((taxBracket) => {
+  //     const length = headers.length;
+  //     const highlightClass = taxBracket.toLowerCase().includes("total")
+  //       ? "t-highlight"
+  //       : "";
+  //     if (length < 2)
+  //       throw new Error("Cannot produce table with less than two columns");
+  //     return `
+  //     <tr>
+  //       ${Array.from(
+  //         new Array(length - 2),
+  //         () => `<td class="${highlightClass}"></td>`
+  //       ).join("\n")}
+  //       <td class="t-price ${highlightClass}">
+  //         ${taxBracket}
+  //       </td>
+  //       <td class="t-total ${highlightClass}">
+  //         ${taxBreakUps[taxBracket]}
+  //       </td>
+  //     </tr>
+  //   `;
+  //   })
+  //   .join("\n");
 
   const parsedRows = rows.map((row) => row.map((item) => parseFloat(item)));
   const accumulator = {};
@@ -97,7 +97,7 @@ function generateTable({ headers, rows }, taxBreakUps) {
       )
       .join("\n")}
       ${totalRow}
-      ${taxBreakupRows}
+      ${/*taxBreakupRows*/ ""}
   </tbody>
   `;
 
@@ -122,6 +122,20 @@ function generateAttachments(attachments) {
       .join("\n")}
   </section>
   `;
+}
+
+function generateBreakups(breakups) {
+  const render = `
+    <section class="breakup-container">
+      ${Object.keys(breakups)
+        .map(
+          (breakup) =>
+            `<div class="breakup-label">${breakup}</div><div class="breakup-value">${breakups[breakup]}</div>`
+        )
+        .join("\n")}
+    </section>
+  `;
+  return render;
 }
 
 async function generateBid({
@@ -276,6 +290,7 @@ async function generateBid({
       <section class="details">${bid.termsAndConditions}</section>
       `
         : "",
+    breakups: generateBreakups(taxBreakups),
   };
 
   const file = template(

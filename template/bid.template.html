@@ -163,10 +163,26 @@
         justify-content: center;
         flex-direction: column;
       }
+      .align-right {
+        display: flex;
+        align-items: flex-end;
+        justify-content: flex-start;
+        flex-direction: column;
+      }
       a {
         color: #1890ff;
         margin: 6px 0;
         text-decoration: none;
+      }
+      .breakup-container {
+        display: grid;
+        grid-template-columns: 5fr 5fr;
+        width: 200px;
+      }
+      .breakup-label {
+      }
+      .breakup-value {
+        text-align: right;
       }
     </style>
   </head>
@@ -247,6 +263,10 @@
           </section>
           <%= attachments %> <%= terms_and_conditions %>
         </section>
+        <section class="col align-right"><%= breakups %></section>
+      </section>
+      <section class="row">
+        <section class="col"></section>
         <section class="col align-center">
           <img src="<%= sign_image %>" class="sign-image" alt="sign image" />
           <span> Authorised signatory for <%= vendor_name %> </span>
