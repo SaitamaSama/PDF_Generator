@@ -179,10 +179,20 @@
         grid-template-columns: 5fr 5fr;
         width: 200px;
       }
-      .breakup-label {
+      .breakup-label.last {
+        font-weight: 700;
+        font-size: 14px;
       }
       .breakup-value {
         text-align: right;
+      }
+      .breakup-value.last {
+        font-weight: 700;
+        font-size: 15px;
+      }
+      .line.bank-details {
+        display: grid;
+        grid-template-columns: 3fr 7fr;
       }
     </style>
   </head>
@@ -256,10 +266,10 @@
         <section class="col">
           <header class="sec-title">Bank Details</header>
           <section class="details">
-            <div class="line"><%= account_number %></div>
-            <div class="line"><%= ifsc_code %></div>
-            <div class="line"><%= account_holder %></div>
-            <div class="line"><%= branch_name %></div>
+            <div class="line bank-details"><%= account_number %></div>
+            <div class="line bank-details"><%= ifsc_code %></div>
+            <div class="line bank-details"><%= account_holder %></div>
+            <div class="line bank-details"><%= branch_name %></div>
           </section>
           <%= attachments %> <%= terms_and_conditions %>
         </section>

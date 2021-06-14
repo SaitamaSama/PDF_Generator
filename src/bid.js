@@ -65,7 +65,7 @@ function generateTable({ headers, rows }, taxBreakUps) {
       return `<td class="t-highlight"></td>`;
     }
     if (index === 1) {
-      return `<td class="t-highlight t-name">Total</td>`;
+      return `<td class="t-highlight t-name">Sub Total</td>`;
     }
     const accValue = accumulator[index];
     if (isNaN(accValue)) return `<td class="t-highlight t-price"></td>`;
@@ -129,8 +129,12 @@ function generateBreakups(breakups) {
     <section class="breakup-container">
       ${Object.keys(breakups)
         .map(
-          (breakup) =>
-            `<div class="breakup-label">${breakup}</div><div class="breakup-value">${breakups[breakup]}</div>`
+          (breakup, index) =>
+            `<div class="breakup-label ${
+              index === Object.keys(breakups).length - 1 && "last"
+            }">${breakup}</div><div class="breakup-value ${
+              index === Object.keys(breakups).length - 1 && "last"
+            }">${breakups[breakup]}</div>`
         )
         .join("\n")}
     </section>
@@ -275,10 +279,10 @@ async function generateBid({
     data_table: generateTable(table, taxBreakups),
     quotation_date: `Quotation Date - ${new Date().toDateString()}`,
     // Bank details,
-    account_number: `Account number - ${bid.associatedBank[0].accountNumber}`,
-    ifsc_code: `IFSC Code - ${bid.associatedBank[0].ifscCode}`,
-    branch_name: `Branch - ${bid.associatedBank[0].branchName}`,
-    account_holder: `Account Holder - ${bid.associatedBank[0].accountHolderName}`,
+    account_number: `<span>Account number</span><span> - ${bid.associatedBank[0].accountNumber}</span>`,
+    ifsc_code: `<span>IFSC Code</span><span> - ${bid.associatedBank[0].ifscCode}</span>`,
+    branch_name: `<span>Branch</span><span> - ${bid.associatedBank[0].branchName}</span>`,
+    account_holder: `<span>Account Holder</span><span> - ${bid.associatedBank[0].accountHolderName}</span>`,
     // Sign
     sign_image: bid.signImageUrl,
     // Attachments
