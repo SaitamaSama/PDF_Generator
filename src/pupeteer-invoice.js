@@ -216,20 +216,6 @@ async function generateInvoice({
     gstin: "",
     pan: "",
   },
-  itemDetails = [
-    {
-      ID: "",
-      Description: "",
-      Unit: "",
-      Quantity: 0,
-      Make: "",
-      Price: "",
-      Tax: "",
-      Total: "",
-      Tax_percent: "",
-      Tax_num: "",
-    },
-  ],
   extra = {
     termsAndConditions: "",
   },
@@ -425,7 +411,6 @@ async function generateInvoice({
   await page.setContent(
     file({
       ...templateConfig,
-      table_items: itemDetails,
     })
   );
   await page.evaluateHandle("document.fonts.ready");
@@ -453,4 +438,96 @@ async function generateInvoice({
   return createdPath;
 }
 
-module.exports = generateInvoice;
+function generateInvoiceFromPowo(powo, powoItems) {
+  const taxBreakups = {};
+  powoItems
+    .map((item) => item.idBoms[0])
+    .forEach((item) => {
+      const tax = item.tax;
+      if (tax.type.includes("igst")) {
+        if (taxBreakups[`IGST@${tax.value.toFixed(2)}`]) {
+          taxBreakups[`IGST@${tax.value.toFixed(2)}`] =
+            (tax.value / 100) * item.sellingPrice * item.quantity;
+        } else {
+          taxBreakups[`IGST@${tax.value.toFixed(2)}`] +=
+            (tax.value / 100) * item.sellingPrice * item.quantity;
+        }
+      } else {
+        if (taxBreakups[`SGST@${(tax.value / 2).toFixed(2)}`]) {
+          taxBreakups[`SGST@${(tax.value / 2).toFixed(2)}`] =
+            (tax.value / 200) * item.sellingPrice * item.quantity;
+        } else {
+          taxBreakups[`SGST@${(tax.value / 2).toFixed(2)}`] +=
+            (tax.value / 200) * item.sellingPrice * item.quantity;
+        }
+        if (taxBreakups[`CGST@${(tax.value / 2).toFixed(2)}`]) {
+          taxBreakups[`CGST@${(tax.value / 2).toFixed(2)}`] =
+            (tax.value / 200) * item.sellingPrice * item.quantity;
+        } else {
+          taxBreakups[`CGST@${(tax.value / 2).toFixed(2)}`] +=
+            (tax.value / 200) * item.sellingPrice * item.quantity;
+        }
+      }
+    });
+  return generateInvoice({
+    poDetails: {
+      buyersName: powo.buyersName,
+      poNumber: powo.poNumber,
+      createdAt: new Date(powo.createdAt),
+      deliveryDate: new Date(powo.deliveryDate),
+      createdBy: powo.createdBy,
+      contact: "", // We need the user's phone and email
+    },
+    vendorDetails: {
+      name: powo.idVendor.name,
+      billingAddress: powo.idVendor.billingAddress,
+      pincode: powo.idVendor.pincode,
+      gstin: powo.idVendor.gstin,
+      pan: powo.idVendor.pan,
+    },
+    table: {
+      headers: [
+        "ID",
+        "Name",
+        "Category",
+        "Description",
+        "Unit",
+        "Make",
+        "Quantity",
+        "Price",
+        "Total",
+      ],
+      rows: powoItems.map((item, idx) => [
+        idx,
+        item.idBoq.name,
+        item.idBoq.category,
+        item.idBoq.description,
+        item.idBoq.unit,
+        item.idBoq.make,
+        item.idBoq.quantity,
+        item.idBoq.sellingPrice,
+        parseFloat(item.idBoq.quantity) * parseFloat(item.idBoq.sellingPrice),
+      ]),
+    },
+    image: {
+      url: powo.idOrg.imgUrl,
+    },
+    billDetails: {
+      name: powo.idOrg.name,
+      address: powo.idOrg.address,
+      pincode: powo.idOrg.pin,
+      gst: powo.idOrg.gst,
+    },
+    shippingDetails: {}, // What details to put here?
+    paymentTerms: {
+      paymentAfterInvoice: powo.paymentAfterInvoice,
+      paymentAfterInvoiceDays: powo.paymentAfterInvoiceDays,
+      paymentAtDelivery: powo.paymentAtDelivery,
+      paymentBeforeDelivery: powo.paymentBeforeDelivery,
+      customPaymentTerms: powo.customPaymentTerms,
+    },
+    taxBreakups,
+  });
+}
+
+module.exports = generateInvoiceFromPowo;
