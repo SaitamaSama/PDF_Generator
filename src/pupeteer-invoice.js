@@ -380,9 +380,7 @@ async function generateInvoice({
     vendor_pincode: vendorDetails.pincode
       ? `Pin Code - ${vendorDetails.pincode}`
       : "",
-    vendor_gst: vendorDetails.gstin
-      ? `GST- ${bilvendorDetailslDetails.gstin}`
-      : "",
+    vendor_gst: vendorDetails.gstin ? `GST- ${vendorDetails.gstin}` : "",
     vendor_pan: vendorDetails.pan ? `PAN - ${vendorDetails.pan}` : "",
     // Shipping
     shipping_name: shippingDetails.name,
@@ -440,35 +438,33 @@ async function generateInvoice({
 
 function generateInvoiceFromPowo(powo, powoItems) {
   const taxBreakups = {};
-  powoItems
-    .map((item) => item.idBoms[0])
-    .forEach((item) => {
-      const tax = item.tax;
-      if (tax.type.includes("igst")) {
-        if (taxBreakups[`IGST@${tax.value.toFixed(2)}`]) {
-          taxBreakups[`IGST@${tax.value.toFixed(2)}`] =
-            (tax.value / 100) * item.sellingPrice * item.quantity;
-        } else {
-          taxBreakups[`IGST@${tax.value.toFixed(2)}`] +=
-            (tax.value / 100) * item.sellingPrice * item.quantity;
-        }
+  powoItems.forEach((item) => {
+    const tax = item.tax;
+    if (tax.type.includes("igst")) {
+      if (!taxBreakups[`IGST@${tax.value.toFixed(2)}`]) {
+        taxBreakups[`IGST@${tax.value.toFixed(2)}`] =
+          (tax.value / 100) * item.idBoq.costPrice * item.idBoq.quantity;
       } else {
-        if (taxBreakups[`SGST@${(tax.value / 2).toFixed(2)}`]) {
-          taxBreakups[`SGST@${(tax.value / 2).toFixed(2)}`] =
-            (tax.value / 200) * item.sellingPrice * item.quantity;
-        } else {
-          taxBreakups[`SGST@${(tax.value / 2).toFixed(2)}`] +=
-            (tax.value / 200) * item.sellingPrice * item.quantity;
-        }
-        if (taxBreakups[`CGST@${(tax.value / 2).toFixed(2)}`]) {
-          taxBreakups[`CGST@${(tax.value / 2).toFixed(2)}`] =
-            (tax.value / 200) * item.sellingPrice * item.quantity;
-        } else {
-          taxBreakups[`CGST@${(tax.value / 2).toFixed(2)}`] +=
-            (tax.value / 200) * item.sellingPrice * item.quantity;
-        }
+        taxBreakups[`IGST@${tax.value.toFixed(2)}`] +=
+          (tax.value / 100) * item.idBoq.costPrice * item.idBoq.quantity;
       }
-    });
+    } else {
+      if (!taxBreakups[`SGST@${(tax.value / 2).toFixed(2)}`]) {
+        taxBreakups[`SGST@${(tax.value / 2).toFixed(2)}`] =
+          (tax.value / 200) * item.idBoq.costPrice * item.idBoq.quantity;
+      } else {
+        taxBreakups[`SGST@${(tax.value / 2).toFixed(2)}`] +=
+          (tax.value / 200) * item.idBoq.costPrice * item.idBoq.quantity;
+      }
+      if (!taxBreakups[`CGST@${(tax.value / 2).toFixed(2)}`]) {
+        taxBreakups[`CGST@${(tax.value / 2).toFixed(2)}`] =
+          (tax.value / 200) * item.idBoq.costPrice * item.idBoq.quantity;
+      } else {
+        taxBreakups[`CGST@${(tax.value / 2).toFixed(2)}`] +=
+          (tax.value / 200) * item.idBoq.costPrice * item.idBoq.quantity;
+      }
+    }
+  });
   return generateInvoice({
     poDetails: {
       buyersName: powo.buyersName,
@@ -505,8 +501,8 @@ function generateInvoiceFromPowo(powo, powoItems) {
         item.idBoq.unit,
         item.idBoq.make,
         item.idBoq.quantity,
-        item.idBoq.sellingPrice,
-        parseFloat(item.idBoq.quantity) * parseFloat(item.idBoq.sellingPrice),
+        item.idBoq.costPrice,
+        parseFloat(item.idBoq.quantity) * parseFloat(item.idBoq.costPrice),
       ]),
     },
     image: {
@@ -518,7 +514,11 @@ function generateInvoiceFromPowo(powo, powoItems) {
       pincode: powo.idOrg.pin,
       gst: powo.idOrg.gst,
     },
-    shippingDetails: {}, // What details to put here?
+    shippingDetails: {
+      name: powo?.shipping?.name,
+      address: powo?.shipping?.address,
+      pincode: powo?.shipping?.pincode,
+    }, // What details to put here? TODO
     paymentTerms: {
       paymentAfterInvoice: powo.paymentAfterInvoice,
       paymentAfterInvoiceDays: powo.paymentAfterInvoiceDays,
