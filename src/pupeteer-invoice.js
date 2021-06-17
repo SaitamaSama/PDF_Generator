@@ -124,13 +124,12 @@ function generatePaymentTermsTable(paymentTerms) {
     paymentTerms.paymentAtDelivery === null &&
     paymentTerms.paymentBeforeDelivery === null
   ) {
-    const customPaymet = JSON.parse(paymentTerms.customPaymentTerms);
-    customPaymet.forEach((item) => {
+    paymentTerms.customPaymentTerms.forEach((item) => {
       rows.push(`
       <tr>
         <td class="expand-col"></td>
-        <td class="t-term">${item.term}</td>
-        <td class="t-percent">${item.percent}%</td>
+        <td class="t-term">${item.label}</td>
+        <td class="t-percent">${item.value}%</td>
       </tr>
       `);
     });
@@ -158,6 +157,15 @@ function generatePaymentTermsTable(paymentTerms) {
       <td class="t-percent">${paymentTerms.paymentAfterInvoice ?? 0}%</td>
     </tr>
     `);
+    paymentTerms.customPaymentCharges.forEach((item) => {
+      rows.push(`
+      <tr>
+        <td class="expand-col"></td>
+        <td class="t-term">${item.label}</td>
+        <td class="t-percent">${item.value}%</td>
+      </tr>
+      `);
+    });
   }
 
   const tbody = `
@@ -525,6 +533,7 @@ function generateInvoiceFromPowo(powo, powoItems) {
       paymentAtDelivery: powo.paymentAtDelivery,
       paymentBeforeDelivery: powo.paymentBeforeDelivery,
       customPaymentTerms: powo.customPaymentTerms,
+      customPaymentCharges: powo.customPaymentCharges,
     },
     taxBreakups,
   });
