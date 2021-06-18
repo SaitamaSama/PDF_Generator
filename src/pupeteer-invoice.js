@@ -128,8 +128,8 @@ function generatePaymentTermsTable(paymentTerms) {
       rows.push(`
       <tr>
         <td class="expand-col"></td>
-        <td class="t-term">${item.label}</td>
-        <td class="t-percent">${item.value}%</td>
+        <td class="t-term">${item.term}</td>
+        <td class="t-percent">${item.percent}%</td>
       </tr>
       `);
     });
@@ -161,8 +161,8 @@ function generatePaymentTermsTable(paymentTerms) {
       rows.push(`
       <tr>
         <td class="expand-col"></td>
-        <td class="t-term">${item.label}</td>
-        <td class="t-percent">${item.value}%</td>
+        <td class="t-term">${item.term}</td>
+        <td class="t-percent">₹ ${item.value}</td>
       </tr>
       `);
     });
@@ -533,7 +533,7 @@ function generateInvoiceFromPowo(powo, powoItems) {
       paymentAtDelivery: powo.paymentAtDelivery,
       paymentBeforeDelivery: powo.paymentBeforeDelivery,
       customPaymentTerms: powo.customPaymentTerms,
-      customPaymentCharges: powo.customPaymentCharges,
+      customPaymentCharges: powo.customCharges,
     },
     taxBreakups,
   });
