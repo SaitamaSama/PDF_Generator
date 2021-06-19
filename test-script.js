@@ -80,7 +80,7 @@ const details = {
     gstNumber: 1,
     totalPayment: 840,
     paymentAtDelivery: null,
-    termsAndConditions: null,
+    termsAndConditions: `1. Term\n2. and\n3. Conditions`,
     customPaymentTerms: [
       {
         _id: "60ce06254c2a6f7310f71fb9",
@@ -112,6 +112,20 @@ const details = {
   powoItems: [
     {
       idBoms: [
+        {
+          idBoq: "60b279c20a022200154fe1b8",
+          key: "60b279c20a022200154fe1b80",
+          name: "aa",
+          categoryName: "aa",
+          description: "aa",
+          unit: "aa",
+          make: "aa",
+          quantity: 8,
+          costPrice: 90,
+          sellingPrice: 900,
+          poPrice: 890,
+          poTotal: 7120,
+        },
         {
           idBoq: "60b279c20a022200154fe1b8",
           key: "60b279c20a022200154fe1b80",

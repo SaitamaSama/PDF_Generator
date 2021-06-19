@@ -69,7 +69,9 @@ function generateTable({ headers, rows }, taxBreakUps) {
     }
     const accValue = accumulator[index];
     if (isNaN(accValue)) return `<td class="t-highlight t-price"></td>`;
-    return `<td class="t-highlight a-right t-total">${accValue}</td>`;
+    return `<td class="t-highlight a-right t-total">${accValue.toFixed(
+      2
+    )}</td>`;
   }).join("\n");
 
   const tbody = `
@@ -83,11 +85,7 @@ function generateTable({ headers, rows }, taxBreakUps) {
             .map(
               (value, idx) =>
                 `<td class="${generateClass(headers[idx])}">${
-                  idx === 0
-                    ? value + 1
-                    : isNaN(value)
-                    ? value
-                    : value.toFixed(2)
+                  idx === 0 ? value : isNaN(value) ? value : value.toFixed(2)
                 }</td>`
             )
             .join("\n")}
@@ -477,6 +475,48 @@ function generateInvoiceFromPowo(powo, powoItems) {
       }
     }
   });
+  const rows = [];
+  powoItems.forEach((item, idx) => {
+    if (item.idBoms.length > 0) {
+      rows.push([
+        idx + 1,
+        item.idBoq.name,
+        item.idBoq.categoryName,
+        item.idBoq.description,
+        item.idBoq.unit,
+        item.idBoq.make,
+        item.idBoq.quantity,
+        item.idBoq.costPrice,
+        parseFloat(item.idBoq.quantity) * parseFloat(item.idBoq.costPrice),
+      ]);
+      item.idBoms.forEach((bom, index) => {
+        rows.push([
+          `${idx + 1}.${index + 1}`,
+          bom.name,
+          bom.categoryName,
+          bom.description,
+          bom.unit,
+          bom.make,
+          bom.quantity,
+          bom.costPrice,
+          parseFloat(bom.quantity) * parseFloat(bom.costPrice),
+        ]);
+      });
+      return;
+    }
+    rows.push([
+      idx,
+      item.idBoq.name,
+      item.idBoq.categoryName,
+      item.idBoq.description,
+      item.idBoq.unit,
+      item.idBoq.make,
+      item.idBoq.quantity,
+      item.idBoq.costPrice,
+      parseFloat(item.idBoq.quantity) * parseFloat(item.idBoq.costPrice),
+    ]);
+  });
+
   return generateInvoice({
     poDetails: {
       buyersName: powo.buyersName,
@@ -505,17 +545,7 @@ function generateInvoiceFromPowo(powo, powoItems) {
         "Price",
         "Total",
       ],
-      rows: powoItems.map((item, idx) => [
-        idx,
-        item.idBoq.name,
-        item.idBoq.categoryName,
-        item.idBoq.description,
-        item.idBoq.unit,
-        item.idBoq.make,
-        item.idBoq.quantity,
-        item.idBoq.costPrice,
-        parseFloat(item.idBoq.quantity) * parseFloat(item.idBoq.costPrice),
-      ]),
+      rows,
     },
     image: {
       url: powo.idOrg.imgUrl,
@@ -540,6 +570,9 @@ function generateInvoiceFromPowo(powo, powoItems) {
       customPaymentCharges: powo.customCharges,
     },
     taxBreakups,
+    extra: {
+      termsAndConditions: powo.termsAndConditions ?? "",
+    },
   });
 }
 
