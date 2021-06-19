@@ -43,7 +43,7 @@ function generateTable({ headers, rows }, taxBreakUps) {
           ${taxBracket}
         </td>
         <td class="t-total ${highlightClass}">
-          ${taxBreakUps[taxBracket]}
+          ${taxBreakUps[taxBracket].toFixed(2)}
         </td>
       </tr>
     `;
@@ -83,7 +83,11 @@ function generateTable({ headers, rows }, taxBreakUps) {
             .map(
               (value, idx) =>
                 `<td class="${generateClass(headers[idx])}">${
-                  idx === 0 ? value + 1 : value
+                  idx === 0
+                    ? value + 1
+                    : isNaN(value)
+                    ? value
+                    : value.toFixed(2)
                 }</td>`
             )
             .join("\n")}
@@ -128,8 +132,8 @@ function generatePaymentTermsTable(paymentTerms) {
       rows.push(`
       <tr>
         <td class="expand-col"></td>
-        <td class="t-term">${item.term}</td>
-        <td class="t-percent">${item.percent}%</td>
+        <td class="t-term">${item.label}</td>
+        <td class="t-percent">${item.value.toFixed(2)}%</td>
       </tr>
       `);
     });
@@ -162,7 +166,7 @@ function generatePaymentTermsTable(paymentTerms) {
       <tr>
         <td class="expand-col"></td>
         <td class="t-term">${item.term}</td>
-        <td class="t-percent">₹ ${item.value}</td>
+        <td class="t-percent">₹ ${item.value.toFixed(2)}</td>
       </tr>
       `);
     });
@@ -447,7 +451,7 @@ async function generateInvoice({
 function generateInvoiceFromPowo(powo, powoItems) {
   const taxBreakups = {};
   powoItems.forEach((item) => {
-    const tax = item.tax;
+    const tax = item.tax[0];
     if (tax.type.includes("igst")) {
       if (!taxBreakups[`IGST@${tax.value.toFixed(2)}`]) {
         taxBreakups[`IGST@${tax.value.toFixed(2)}`] =
@@ -504,7 +508,7 @@ function generateInvoiceFromPowo(powo, powoItems) {
       rows: powoItems.map((item, idx) => [
         idx,
         item.idBoq.name,
-        item.idBoq.category,
+        item.idBoq.categoryName,
         item.idBoq.description,
         item.idBoq.unit,
         item.idBoq.make,
