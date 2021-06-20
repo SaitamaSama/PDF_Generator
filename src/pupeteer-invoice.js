@@ -1,7 +1,7 @@
 const puppeteer = require("puppeteer");
 const { template, ..._ } = require("lodash");
 const { promises: fs, readFileSync } = require("fs");
-const { resolve, join } = require("path");
+const { resolve, join, parse } = require("path");
 const { v4: uuid } = require("uuid");
 const imgDataUri = require("image-data-uri");
 
@@ -449,6 +449,9 @@ async function generateInvoice({
 function generateInvoiceFromPowo(powo, powoItems) {
   const taxBreakups = {};
   powoItems.forEach((item) => {
+    if (item.idBoms.length > 0) {
+      return;
+    }
     const tax = item.tax[0];
     if (tax.type.includes("igst")) {
       if (!taxBreakups[`IGST@${tax.value.toFixed(2)}`]) {
@@ -475,6 +478,18 @@ function generateInvoiceFromPowo(powo, powoItems) {
       }
     }
   });
+
+  const taxToDisplayableValue = (amount, tax) => {
+    if (tax.type.includes("igst")) {
+      return `${(tax.value / 100) * amount} <small>(IGST ${
+        tax.value
+      }%)</small>`;
+    }
+    return `${(tax.value / 100) * amount} <small>(CGST & SGST ${
+      tax.value
+    }%)</small>`;
+  };
+
   const rows = [];
   powoItems.forEach((item, idx) => {
     if (item.idBoms.length > 0) {
@@ -486,8 +501,11 @@ function generateInvoiceFromPowo(powo, powoItems) {
         item.idBoq.unit,
         item.idBoq.make,
         item.idBoq.quantity,
-        item.idBoq.costPrice,
-        parseFloat(item.idBoq.quantity) * parseFloat(item.idBoq.costPrice),
+        "N/A",
+        // item.idBoq.costPrice,
+        0,
+        // parseFloat(item.idBoq.quantity) * parseFloat(item.idBoq.costPrice),
+        0,
       ]);
       item.idBoms.forEach((bom, index) => {
         rows.push([
@@ -498,8 +516,9 @@ function generateInvoiceFromPowo(powo, powoItems) {
           bom.unit,
           bom.make,
           bom.quantity,
-          bom.costPrice,
-          parseFloat(bom.quantity) * parseFloat(bom.costPrice),
+          taxToDisplayableValue(bom.poTotal, bom.tax),
+          bom.poPrice,
+          bom.poTotal,
         ]);
       });
       return;
@@ -512,8 +531,14 @@ function generateInvoiceFromPowo(powo, powoItems) {
       item.idBoq.unit,
       item.idBoq.make,
       item.idBoq.quantity,
-      item.idBoq.costPrice,
-      parseFloat(item.idBoq.quantity) * parseFloat(item.idBoq.costPrice),
+      taxToDisplayableValue(
+        parseFloat(item.idBoq.quantity) * parseFloat(item.idBoq.poPrice),
+        item.tax[0]
+      ),
+      item.idBoq.poPrice,
+      parseFloat(item.idBoq.quantity) *
+        (parseFloat(item.idBoq.poPrice) -
+          (item.tax[0].value / 100) * parseFloat(item.idBoq.poPrice)),
     ]);
   });
 
@@ -542,6 +567,7 @@ function generateInvoiceFromPowo(powo, powoItems) {
         "Unit",
         "Make",
         "Quantity",
+        "Tax",
         "Price",
         "Total",
       ],
