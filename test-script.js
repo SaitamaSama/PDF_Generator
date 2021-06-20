@@ -248,4 +248,8 @@ const details = {
   ],
 };
 
-generateInvoiceFromPowo(details.powo, details.powoItems);
+let call = async () => {
+let res = await generateInvoiceFromPowo(details.powo, details.powoItems);
+console.log(res);
+}
+call();

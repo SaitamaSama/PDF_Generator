@@ -210,8 +210,7 @@ function generateTermsTable(terms) {
   `;
 }
 
-async function generateInvoice({
-  poDetails = {
+async function generateInvoice({poDetails = {
     buyersName: "",
     poNumber: "",
     createdAt: new Date(),
