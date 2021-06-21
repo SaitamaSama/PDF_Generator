@@ -1,11 +1,11 @@
 const puppeteer = require("puppeteer");
-const { template, ..._ } = require("lodash");
-const { promises: fs, readFileSync } = require("fs");
-const { resolve, join, parse } = require("path");
-const { v4: uuid } = require("uuid");
+const {template, ..._} = require("lodash");
+const {promises: fs, readFileSync} = require("fs");
+const {resolve, join, parse} = require("path");
+const {v4: uuid} = require("uuid");
 const imgDataUri = require("image-data-uri");
 
-function generateTable({ headers, rows }, taxBreakUps) {
+function generateTable({headers, rows}, taxBreakUps) {
   function generateClass(header) {
     return `t-${header.toLowerCase()}`;
   }
@@ -14,13 +14,13 @@ function generateTable({ headers, rows }, taxBreakUps) {
   <thead>
     <tr>
       ${headers
-        .map(
-          (header) =>
-            `<th class="${generateClass(header)}">${
-              header === "ID" ? "#" : header
-            }</th>`
-        )
-        .join("\n")}
+    .map(
+      (header) =>
+        `<th class="${generateClass(header)}">${
+          header === "ID" ? "#" : header
+        }</th>`
+    )
+    .join("\n")}
     </tr>
   </thead>
   `;
@@ -36,9 +36,9 @@ function generateTable({ headers, rows }, taxBreakUps) {
       return `
       <tr>
         ${Array.from(
-          new Array(length - 2),
-          () => `<td class="${highlightClass}"></td>`
-        ).join("\n")}
+        new Array(length - 2),
+        () => `<td class="${highlightClass}"></td>`
+      ).join("\n")}
         <td class="t-price ${highlightClass}">
           ${taxBracket}
         </td>
@@ -77,21 +77,21 @@ function generateTable({ headers, rows }, taxBreakUps) {
   const tbody = `
   <tbody>
     ${rows
-      .map(
-        (columns) =>
-          `<tr>
+    .map(
+      (columns) =>
+        `<tr>
           ${columns
-            .filter((col) => col !== "class")
-            .map(
-              (value, idx) =>
-                `<td class="${generateClass(headers[idx])}">${
-                  idx === 0 ? value : isNaN(value) ? value : value.toFixed(2)
-                }</td>`
-            )
-            .join("\n")}
+          .filter((col) => col !== "class")
+          .map(
+            (value, idx) =>
+              `<td class="${generateClass(headers[idx])}">${
+                idx === 0 ? value : isNaN(value) ? value : parseFloat(value).toFixed(2)
+              }</td>`
+          )
+          .join("\n")}
           </tr>`
-      )
-      .join("\n")}
+    )
+    .join("\n")}
       ${totalRow}
       ${taxBreakupRows}
   </tbody>
@@ -110,10 +110,10 @@ function generatePaymentTermsTable(paymentTerms) {
   <thead>
     <tr>
       ${[
-        '<th class="expand-col">Payment Terms</th>',
-        '<th class="t-term">Term</th>',
-        '<th class="t-percent">Percent</th>',
-      ].join("\n")}
+    '<th class="expand-col">Payment Terms</th>',
+    '<th class="t-term">Term</th>',
+    '<th class="t-percent">Percent</th>',
+  ].join("\n")}
     </tr>
   </thead>
   `;
@@ -154,8 +154,8 @@ function generatePaymentTermsTable(paymentTerms) {
     <tr>
       <td class="expand-col"></td>
       <td class="t-term">Payment ${
-        paymentTerms.paymentAfterInvoiceDays ?? 0
-      } days after invoice</td>
+      paymentTerms.paymentAfterInvoiceDays ?? 0
+    } days after invoice</td>
       <td class="t-percent">${paymentTerms.paymentAfterInvoice ?? 0}%</td>
     </tr>
     `);
@@ -198,81 +198,77 @@ function generateTermsTable(terms) {
     </thead>
     <tbody>
     ${terms
-      .map(
-        (term) =>
-          `<tr>
+    .map(
+      (term) =>
+        `<tr>
         <td class="t-r-term-and-c">${term}</td>
       </tr>`
-      )
-      .join("\n")}
+    )
+    .join("\n")}
     </tbody>
   </table>
   `;
 }
 
-async function generateInvoice({poDetails = {
-    buyersName: "",
-    poNumber: "",
-    createdAt: new Date(),
-    deliveryDate: new Date(),
-    createdBy: "",
-    contact: "",
-  },
-  vendorDetails = {
-    name: "",
-    billingAddress: "",
-    pincode: "",
-    gstin: "",
-    pan: "",
-  },
-  extra = {
-    termsAndConditions: "",
-  },
-  image = {
-    url: "https://mysite-user-images.s3.ap-south-1.amazonaws.com/1620284314416",
-    // file: "",
-  },
-  billDetails = {
-    name: "",
-    address: "",
-    pincode: "",
-    gst: "",
-  },
-  shippingDetails = {
-    name: "",
-    address: "",
-    pincode: "",
-  },
-  table = {
-    headers: [
-      "ID",
-      "Name",
-      "Category",
-      "Description",
-      "Unit",
-      "Make",
-      "Quantity",
-      "Price",
-      "Total",
-    ],
-    // Rows should be an array of arrays
-    rows: [],
-  },
-  taxBreakups = {
-    "SGST@4.5%": "100",
-    "CST@4.5%": "100",
-    "Taxable Amount": "200",
-    "Total Amount": "90000",
-  },
-  paymentTerms = {
-    paymentAfterInvoice: null,
-    paymentAfterInvoiceDays: null,
-    paymentAtDelivery: null,
-    paymentBeforeDelivery: null,
-    customPaymentTerms:
-      '[{"term":"Advance payment","percent":"15"},{"term":"After delivery ","percent":"85"}]',
-  },
-}) {
+async function generateInvoice({
+                                 poDetails = {
+                                   buyersName: "",
+                                   poNumber: "",
+                                   createdAt: new Date(),
+                                   deliveryDate: new Date(),
+                                   createdBy: "",
+                                   contact: "",
+                                 },
+                                 vendorDetails = {
+                                   name: "",
+                                   billingAddress: "",
+                                   pincode: "",
+                                   gstin: "",
+                                   pan: "",
+                                 },
+                                 extra = {
+                                   termsAndConditions: "",
+                                 },
+                                 image = {
+                                   url: "https://mysite-user-images.s3.ap-south-1.amazonaws.com/1620284314416",
+                                   // file: "",
+                                 },
+                                 billDetails = {
+                                   name: "",
+                                   address: "",
+                                   pincode: "",
+                                   gst: "",
+                                 },
+                                 shippingDetails = {
+                                   name: "",
+                                   address: "",
+                                   pincode: "",
+                                 },
+                                 table = {
+                                   headers: [
+                                     "ID",
+                                     "Name",
+                                     "Category",
+                                     "Description",
+                                     "Unit",
+                                     "Make",
+                                     "Quantity",
+                                     "Price",
+                                     "Total",
+                                   ],
+                                   // Rows should be an array of arrays
+                                   rows: [],
+                                 },
+                                 taxBreakups = {},
+                                 paymentTerms = {
+                                   paymentAfterInvoice: null,
+                                   paymentAfterInvoiceDays: null,
+                                   paymentAtDelivery: null,
+                                   paymentBeforeDelivery: null,
+                                   customPaymentTerms:
+                                     '[{"term":"Advance payment","percent":"15"},{"term":"After delivery ","percent":"85"}]',
+                                 },
+                               }) {
   // Header and footer template for the PDF document
   const header = `
   <header style="
@@ -284,8 +280,8 @@ async function generateInvoice({poDetails = {
     margin-left: 18px;
   ">
       ${
-        image
-          ? `<div style="margin: 32px 22px; min-width: 175px; max-width: 175px; flex-grow: 1; display: flex; align-items: center;">
+    image
+      ? `<div style="margin: 32px 22px; min-width: 175px; max-width: 175px; flex-grow: 1; display: flex; align-items: center;">
           <img
             style="
               max-width: 175px;
@@ -293,14 +289,14 @@ async function generateInvoice({poDetails = {
             "
             src="
               ${
-                image.file
-                  ? await imgDataUri.encodeFromFile(readFileSync(image.file))
-                  : await imgDataUri.encodeFromURL(image.url)
-              }
+        image.file
+          ? await imgDataUri.encodeFromFile(readFileSync(image.file))
+          : await imgDataUri.encodeFromURL(image.url)
+      }
             "
           />
         </div>`
-          : `<div
+      : `<div
           style="
             font-size: 18px;
             margin: 32px 22px;
@@ -310,7 +306,7 @@ async function generateInvoice({poDetails = {
         >
           ${poDetails.buyersName}
         </div>`
-      }
+  }
       
       <div
         style="
@@ -327,24 +323,24 @@ async function generateInvoice({poDetails = {
           <div style="display: flex">
             <div style="width: 90px">Order Date</div>
             <div style="width: 150px">: ${
-              poDetails.createdAt
-                ? new Date(poDetails.createdAt).toDateString()
-                : "No data"
-            }</div>
+    poDetails.createdAt
+      ? new Date(poDetails.createdAt).toDateString()
+      : "No data"
+  }</div>
           </div>
           <div style="display: flex">
             <div style="width: 90px">Delivery Date</div>
             <div style="width: 150px">: ${
-              poDetails.deliveryDate
-                ? new Date(poDetails.deliveryDate).toDateString()
-                : "No data"
-            }</div>
+    poDetails.deliveryDate
+      ? new Date(poDetails.deliveryDate).toDateString()
+      : "No data"
+  }</div>
           </div>
           <div style="display: flex">
             <div style="width: 90px">Purchaser</div>
             <div style="width: 150px">: ${
-              poDetails.createdBy ?? "No data"
-            }</div>
+    poDetails.createdBy ?? "No data"
+  }</div>
           </div>
           <div style="display: flex">
             <div style="width: 90px">Contact Details</div>
@@ -413,7 +409,12 @@ async function generateInvoice({poDetails = {
     ).toString()
   );
   // Initialises puppeteer
-  const browser = await puppeteer.launch();
+  const browser = await puppeteer.launch({
+    args: [
+      '--no-sandbox',
+      '--disable-setuid-sandbox',
+    ],
+  });
   const page = await browser.newPage();
   await page.setContent(
     file({
@@ -445,85 +446,124 @@ async function generateInvoice({poDetails = {
   return createdPath;
 }
 
-function generateInvoiceFromPowo(powo, powoItems) {
+async function generateInvoiceFromPowo(powo, powoItems) {
+  console.log('powo received: ', powo);
+  console.log('powoItems received: ', powoItems);
   const taxBreakups = {};
+  if (powo.freightCharges && powo.freightCharges > 0) taxBreakups['Freight charges'] = powo.freightCharges;
+  if (powo.additionalDiscount && powo.additionalDiscount > 0) taxBreakups['Additional discount'] = powo.additionalDiscount;
+  if (powo.additionalCharges && powo.additionalCharges > 0) taxBreakups['Additional charges'] = powo.additionalCharges;
   powoItems.forEach((item) => {
     if (item.idBoms.length > 0) {
+      item.idBoms.map(bom => {
+        const tax = bom.tax[0];
+        if (tax.type.includes("igst")) {
+          if (!taxBreakups[`IGST@${tax.value.toFixed(2)}`]) {
+            taxBreakups[`IGST@${tax.value.toFixed(2)}`] =
+              (tax.value / 100) * (bom.poPrice - bom.discount) * bom.quantity;
+          } else {
+            taxBreakups[`IGST@${tax.value.toFixed(2)}`] +=
+              (tax.value / 100) * (bom.poPrice - bom.discount) * bom.quantity;
+          }
+        } else {
+          if (!taxBreakups[`SGST@${(tax.value / 2).toFixed(2)}`]) {
+            taxBreakups[`SGST@${(tax.value / 2).toFixed(2)}`] =
+              (tax.value / 200) * (bom.poPrice - bom.discount) * bom.quantity;
+          } else {
+            taxBreakups[`SGST@${(tax.value / 2).toFixed(2)}`] +=
+              (tax.value / 200) * (bom.poPrice - bom.discount) * bom.quantity;
+          }
+          if (!taxBreakups[`CGST@${(tax.value / 2).toFixed(2)}`]) {
+            taxBreakups[`CGST@${(tax.value / 2).toFixed(2)}`] =
+              (tax.value / 200) * (bom.poPrice - bom.discount) * bom.quantity;
+          } else {
+            taxBreakups[`CGST@${(tax.value / 2).toFixed(2)}`] +=
+              (tax.value / 200) * (bom.poPrice - bom.discount) * bom.quantity;
+          }
+        }
+      })
       return;
     }
     const tax = item.tax[0];
     if (tax.type.includes("igst")) {
       if (!taxBreakups[`IGST@${tax.value.toFixed(2)}`]) {
         taxBreakups[`IGST@${tax.value.toFixed(2)}`] =
-          (tax.value / 100) * item.idBoq.costPrice * item.idBoq.quantity;
+          (tax.value / 100) * (item.idBoq.poPrice - item.idBoq.discount) * item.idBoq.quantity;
       } else {
         taxBreakups[`IGST@${tax.value.toFixed(2)}`] +=
-          (tax.value / 100) * item.idBoq.costPrice * item.idBoq.quantity;
+          (tax.value / 100) * (item.idBoq.poPrice - item.idBoq.discount) * item.idBoq.quantity;
       }
     } else {
       if (!taxBreakups[`SGST@${(tax.value / 2).toFixed(2)}`]) {
         taxBreakups[`SGST@${(tax.value / 2).toFixed(2)}`] =
-          (tax.value / 200) * item.idBoq.costPrice * item.idBoq.quantity;
+          (tax.value / 200) * (item.idBoq.poPrice - item.idBoq.discount) * item.idBoq.quantity;
       } else {
         taxBreakups[`SGST@${(tax.value / 2).toFixed(2)}`] +=
-          (tax.value / 200) * item.idBoq.costPrice * item.idBoq.quantity;
+          (tax.value / 200) * (item.idBoq.poPrice - item.idBoq.discount) * item.idBoq.quantity;
       }
       if (!taxBreakups[`CGST@${(tax.value / 2).toFixed(2)}`]) {
         taxBreakups[`CGST@${(tax.value / 2).toFixed(2)}`] =
-          (tax.value / 200) * item.idBoq.costPrice * item.idBoq.quantity;
+          (tax.value / 200) * (item.idBoq.poPrice - item.idBoq.discount) * item.idBoq.quantity;
       } else {
         taxBreakups[`CGST@${(tax.value / 2).toFixed(2)}`] +=
-          (tax.value / 200) * item.idBoq.costPrice * item.idBoq.quantity;
+          (tax.value / 200) * (item.idBoq.poPrice - item.idBoq.discount) * item.idBoq.quantity;
       }
     }
   });
 
   const taxToDisplayableValue = (amount, tax) => {
+    console.log('amount: ', amount);
+    console.log('tax: ', tax);
     if (tax.type.includes("igst")) {
-      return `${(tax.value / 100) * amount} <small>(IGST ${
+      return `${parseFloat((tax.value / 100) * amount).toFixed(2)} <small>(IGST ${
         tax.value
       }%)</small>`;
     }
-    return `${(tax.value / 100) * amount} <small>(CGST & SGST ${
+    return `${parseFloat((tax.value / 100) * amount).toFixed(2)} <small>(CGST & SGST ${
       tax.value
     }%)</small>`;
   };
 
+  let totalAmount = 0;
   const rows = [];
+  let count = 1;
   powoItems.forEach((item, idx) => {
     if (item.idBoms.length > 0) {
-      rows.push([
-        idx + 1,
-        item.idBoq.name,
-        item.idBoq.categoryName,
-        item.idBoq.description,
-        item.idBoq.unit,
-        item.idBoq.make,
-        item.idBoq.quantity,
-        "N/A",
-        // item.idBoq.costPrice,
-        0,
-        // parseFloat(item.idBoq.quantity) * parseFloat(item.idBoq.costPrice),
-        0,
-      ]);
+      // rows.push([
+      //   idx + 1,
+      //   item.idBoq.name,
+      //   item.idBoq.categoryName,
+      //   item.idBoq.description,
+      //   item.idBoq.unit,
+      //   item.idBoq.make,
+      //   item.idBoq.quantity,
+      //   "N/A",
+      //   // item.idBoq.costPrice,
+      //   0,
+      //   // parseFloat(item.idBoq.quantity) * parseFloat(item.idBoq.costPrice),
+      //   0,
+      // ]);
       item.idBoms.forEach((bom, index) => {
         rows.push([
-          `${idx + 1}.${index + 1}`,
-          bom.name,
-          bom.categoryName,
-          bom.description,
-          bom.unit,
-          bom.make,
-          bom.quantity,
-          taxToDisplayableValue(bom.poTotal, bom.tax),
+          // `${idx + 1}.${index + 1}`,
+          `${count}`,
+          bom.name ?? '',
+          bom.categoryName ?? '',
+          isNaN(bom.description) || bom.description === "" ? 'NA' : bom.description,
+          isNaN(bom.unit) || bom.unit === "" ? 'NA' : bom.unit,
+          isNaN(bom.make) || bom.make === "" ? 'NA' : bom.make,
+          bom.quantity ?? '',
+          taxToDisplayableValue(parseFloat(bom.quantity) * (parseFloat(bom.poPrice) - parseFloat(bom.discount ?? 0)), bom.tax[0]),
           bom.poPrice,
-          bom.poTotal,
+          (parseFloat(bom.quantity) * (parseFloat(bom.poPrice) - parseFloat(bom.discount ?? 0))) + ((bom.tax[0].value / 100) * (parseFloat(bom.quantity) * (parseFloat(bom.poPrice) - parseFloat(bom.discount ?? 0)))),
         ]);
+        totalAmount += (parseFloat(bom.quantity) * (parseFloat(bom.poPrice) - parseFloat(bom.discount ?? 0))) + ((bom.tax[0].value / 100) * (parseFloat(bom.quantity) * (parseFloat(bom.poPrice) - parseFloat(bom.discount ?? 0))));
+        count += 1;
       });
       return;
     }
     rows.push([
-      idx,
+      count,
       item.idBoq.name,
       item.idBoq.categoryName,
       item.idBoq.description,
@@ -531,15 +571,19 @@ function generateInvoiceFromPowo(powo, powoItems) {
       item.idBoq.make,
       item.idBoq.quantity,
       taxToDisplayableValue(
-        parseFloat(item.idBoq.quantity) * parseFloat(item.idBoq.poPrice),
+        parseFloat(item.idBoq.quantity) * (parseFloat(item.idBoq.poPrice) - parseFloat(item.idBoq.discount ?? 0)),
         item.tax[0]
       ),
       item.idBoq.poPrice,
-      parseFloat(item.idBoq.quantity) *
-        (parseFloat(item.idBoq.poPrice) -
-          (item.tax[0].value / 100) * parseFloat(item.idBoq.poPrice)),
+      (parseFloat(item.idBoq.quantity) * (parseFloat(item.idBoq.poPrice) - parseFloat(item.idBoq.discount ?? 0))) + ((item.tax[0].value / 100) * (parseFloat(item.idBoq.quantity) * (parseFloat(item.idBoq.poPrice) - parseFloat(item.idBoq.discount ?? 0)))),
     ]);
+    count += 1;
+    totalAmount += (parseFloat(item.idBoq.quantity) * (parseFloat(item.idBoq.poPrice) - parseFloat(item.idBoq.discount ?? 0))) + ((item.tax[0].value / 100) * (parseFloat(item.idBoq.quantity) * (parseFloat(item.idBoq.poPrice) - parseFloat(item.idBoq.discount ?? 0))));
   });
+  totalAmount += powo.freightCharges ?? 0;
+  totalAmount += powo.additionalCharges ?? 0;
+  totalAmount -= powo.additionalDiscount ?? 0;
+  taxBreakups["Total Amount"] = totalAmount;
 
   return generateInvoice({
     poDetails: {
@@ -548,7 +592,7 @@ function generateInvoiceFromPowo(powo, powoItems) {
       createdAt: new Date(powo.createdAt),
       deliveryDate: new Date(powo.deliveryDate),
       createdBy: powo.createdBy,
-      contact: "", // We need the user's phone and email
+      contact: powo?.idAddedBy?.phone ?? "", // We need the user's phone and email
     },
     vendorDetails: {
       name: powo.idVendor.name,
