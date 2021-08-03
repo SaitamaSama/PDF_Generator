@@ -54,7 +54,7 @@ function generateTable({ headers, rows }, taxBreakUps) {
   const accumulator = {};
   parsedRows.forEach((row) => {
     row.forEach((item, index) => {
-      if (isNaN(item)) return;
+      if (isNaN(item) || headers[index] === "Quantity") return;
       const prevSum = accumulator[index];
       if (!prevSum) accumulator[index] = item;
       else accumulator[index] += item;
@@ -85,7 +85,11 @@ function generateTable({ headers, rows }, taxBreakUps) {
             .map(
               (value, idx) =>
                 `<td class="${generateClass(headers[idx])}">${
-                  idx === 0 ? value : isNaN(value) ? value : value.toFixed(2)
+                  idx === 0
+                    ? value
+                    : isNaN(value)
+                    ? value
+                    : parseFloat(value).toFixed(2)
                 }</td>`
             )
             .join("\n")}
@@ -105,7 +109,7 @@ function generateTable({ headers, rows }, taxBreakUps) {
   `;
 }
 
-function generatePaymentTermsTable(paymentTerms) {
+function generatePaymentTermsTable(paymentTerms, signImage) {
   const thead = `
   <thead>
     <tr>
@@ -181,6 +185,10 @@ function generatePaymentTermsTable(paymentTerms) {
     ${thead}
     ${tbody}
   </table>
+  <section class="row">
+    <div class="col"></div>
+    <section class="col align-right"><img src="${signImage}" alt="Sign image" style="max-width: 250px; max-height: 120px; height: auto; width: auto;" /></section>
+  </section>
   `;
 }
 
@@ -231,6 +239,7 @@ async function generateInvoice({
   },
   image = {
     url: "https://mysite-user-images.s3.ap-south-1.amazonaws.com/1620284314416",
+    sign: "",
     // file: "",
   },
   billDetails = {
@@ -259,12 +268,7 @@ async function generateInvoice({
     // Rows should be an array of arrays
     rows: [],
   },
-  taxBreakups = {
-    "SGST@4.5%": "100",
-    "CST@4.5%": "100",
-    "Taxable Amount": "200",
-    "Total Amount": "90000",
-  },
+  taxBreakups = {},
   paymentTerms = {
     paymentAfterInvoice: null,
     paymentAfterInvoiceDays: null,
@@ -400,10 +404,12 @@ async function generateInvoice({
       : "",
     // Table items
     data_table: generateTable(table, taxBreakups),
-    payment_terms_table: generatePaymentTermsTable(paymentTerms),
+    payment_terms_table: generatePaymentTermsTable(paymentTerms, image.sign),
     terms_table: generateTermsTable(
       extra.termsAndConditions.split("\n").map((term) => term.trim())
     ),
+    // Sign Image URL
+    sign_img: `<img src="${image.sign}" alt="Sign image" style="max-width: 250px; max-height: auto; height: auto; width: auto;" />`,
   };
 
   const file = template(
@@ -414,7 +420,9 @@ async function generateInvoice({
     ).toString()
   );
   // Initialises puppeteer
-  const browser = await puppeteer.launch();
+  const browser = await puppeteer.launch({
+    args: ["--no-sandbox", "--disable-setuid-sandbox"],
+  });
   const page = await browser.newPage();
   await page.setContent(
     file({
@@ -446,85 +454,155 @@ async function generateInvoice({
   return createdPath;
 }
 
-function generateInvoiceFromPowo(powo, powoItems) {
+async function generateInvoiceFromPowo(powo, powoItems) {
+  console.log("powo received: ", powo);
+  console.log("powoItems received: ", powoItems);
   const taxBreakups = {};
+  if (powo.freightCharges && powo.freightCharges > 0)
+    taxBreakups["Freight charges"] = powo.freightCharges;
+  if (powo.additionalDiscount && powo.additionalDiscount > 0)
+    taxBreakups["Additional discount"] = powo.additionalDiscount;
+  if (powo.additionalCharges && powo.additionalCharges > 0)
+    taxBreakups["Additional charges"] = powo.additionalCharges;
   powoItems.forEach((item) => {
     if (item.idBoms.length > 0) {
+      item.idBoms.map((bom) => {
+        const tax = bom.tax[0];
+        if (tax.type.includes("igst")) {
+          if (!taxBreakups[`IGST@${tax.value.toFixed(2)}`]) {
+            taxBreakups[`IGST@${tax.value.toFixed(2)}`] =
+              (tax.value / 100) * (bom.poPrice - bom.discount) * bom.quantity;
+          } else {
+            taxBreakups[`IGST@${tax.value.toFixed(2)}`] +=
+              (tax.value / 100) * (bom.poPrice - bom.discount) * bom.quantity;
+          }
+        } else {
+          if (!taxBreakups[`SGST@${(tax.value / 2).toFixed(2)}`]) {
+            taxBreakups[`SGST@${(tax.value / 2).toFixed(2)}`] =
+              (tax.value / 200) * (bom.poPrice - bom.discount) * bom.quantity;
+          } else {
+            taxBreakups[`SGST@${(tax.value / 2).toFixed(2)}`] +=
+              (tax.value / 200) * (bom.poPrice - bom.discount) * bom.quantity;
+          }
+          if (!taxBreakups[`CGST@${(tax.value / 2).toFixed(2)}`]) {
+            taxBreakups[`CGST@${(tax.value / 2).toFixed(2)}`] =
+              (tax.value / 200) * (bom.poPrice - bom.discount) * bom.quantity;
+          } else {
+            taxBreakups[`CGST@${(tax.value / 2).toFixed(2)}`] +=
+              (tax.value / 200) * (bom.poPrice - bom.discount) * bom.quantity;
+          }
+        }
+      });
       return;
     }
     const tax = item.tax[0];
     if (tax.type.includes("igst")) {
       if (!taxBreakups[`IGST@${tax.value.toFixed(2)}`]) {
         taxBreakups[`IGST@${tax.value.toFixed(2)}`] =
-          (tax.value / 100) * item.idBoq.costPrice * item.idBoq.quantity;
+          (tax.value / 100) *
+          (item.idBoq.poPrice - item.idBoq.discount) *
+          item.idBoq.quantity;
       } else {
         taxBreakups[`IGST@${tax.value.toFixed(2)}`] +=
-          (tax.value / 100) * item.idBoq.costPrice * item.idBoq.quantity;
+          (tax.value / 100) *
+          (item.idBoq.poPrice - item.idBoq.discount) *
+          item.idBoq.quantity;
       }
     } else {
       if (!taxBreakups[`SGST@${(tax.value / 2).toFixed(2)}`]) {
         taxBreakups[`SGST@${(tax.value / 2).toFixed(2)}`] =
-          (tax.value / 200) * item.idBoq.costPrice * item.idBoq.quantity;
+          (tax.value / 200) *
+          (item.idBoq.poPrice - item.idBoq.discount) *
+          item.idBoq.quantity;
       } else {
         taxBreakups[`SGST@${(tax.value / 2).toFixed(2)}`] +=
-          (tax.value / 200) * item.idBoq.costPrice * item.idBoq.quantity;
+          (tax.value / 200) *
+          (item.idBoq.poPrice - item.idBoq.discount) *
+          item.idBoq.quantity;
       }
       if (!taxBreakups[`CGST@${(tax.value / 2).toFixed(2)}`]) {
         taxBreakups[`CGST@${(tax.value / 2).toFixed(2)}`] =
-          (tax.value / 200) * item.idBoq.costPrice * item.idBoq.quantity;
+          (tax.value / 200) *
+          (item.idBoq.poPrice - item.idBoq.discount) *
+          item.idBoq.quantity;
       } else {
         taxBreakups[`CGST@${(tax.value / 2).toFixed(2)}`] +=
-          (tax.value / 200) * item.idBoq.costPrice * item.idBoq.quantity;
+          (tax.value / 200) *
+          (item.idBoq.poPrice - item.idBoq.discount) *
+          item.idBoq.quantity;
       }
     }
   });
 
   const taxToDisplayableValue = (amount, tax) => {
+    console.log("amount: ", amount);
+    console.log("tax: ", tax);
     if (tax.type.includes("igst")) {
-      return `${(tax.value / 100) * amount} <small>(IGST ${
-        tax.value
-      }%)</small>`;
+      return `${parseFloat((tax.value / 100) * amount).toFixed(
+        2
+      )} <small>(IGST ${tax.value}%)</small>`;
     }
-    return `${(tax.value / 100) * amount} <small>(CGST & SGST ${
-      tax.value
-    }%)</small>`;
+    return `${parseFloat((tax.value / 100) * amount).toFixed(
+      2
+    )} <small>(CGST & SGST ${tax.value}%)</small>`;
   };
 
+  let totalAmount = 0;
   const rows = [];
+  let count = 1;
   powoItems.forEach((item, idx) => {
     if (item.idBoms.length > 0) {
-      rows.push([
-        idx + 1,
-        item.idBoq.name,
-        item.idBoq.categoryName,
-        item.idBoq.description,
-        item.idBoq.unit,
-        item.idBoq.make,
-        item.idBoq.quantity,
-        "N/A",
-        // item.idBoq.costPrice,
-        0,
-        // parseFloat(item.idBoq.quantity) * parseFloat(item.idBoq.costPrice),
-        0,
-      ]);
+      // rows.push([
+      //   idx + 1,
+      //   item.idBoq.name,
+      //   item.idBoq.categoryName,
+      //   item.idBoq.description,
+      //   item.idBoq.unit,
+      //   item.idBoq.make,
+      //   item.idBoq.quantity,
+      //   "N/A",
+      //   // item.idBoq.costPrice,
+      //   0,
+      //   // parseFloat(item.idBoq.quantity) * parseFloat(item.idBoq.costPrice),
+      //   0,
+      // ]);
       item.idBoms.forEach((bom, index) => {
         rows.push([
-          `${idx + 1}.${index + 1}`,
-          bom.name,
-          bom.categoryName,
-          bom.description,
-          bom.unit,
-          bom.make,
-          bom.quantity,
-          taxToDisplayableValue(bom.poTotal, bom.tax),
+          // `${idx + 1}.${index + 1}`,
+          `${count}`,
+          bom.name ?? "",
+          bom.categoryName ?? "",
+          isNaN(bom.description) || bom.description === ""
+            ? "NA"
+            : bom.description,
+          isNaN(bom.unit) || bom.unit === "" ? "NA" : bom.unit,
+          isNaN(bom.make) || bom.make === "" ? "NA" : bom.make,
+          bom.quantity ?? "",
+          taxToDisplayableValue(
+            parseFloat(bom.quantity) *
+              (parseFloat(bom.poPrice) - parseFloat(bom.discount ?? 0)),
+            bom.tax[0]
+          ),
+          bom.discount.toFixed(2),
           bom.poPrice,
-          bom.poTotal,
+          parseFloat(bom.quantity) *
+            (parseFloat(bom.poPrice) - parseFloat(bom.discount ?? 0)) +
+            (bom.tax[0].value / 100) *
+              (parseFloat(bom.quantity) *
+                (parseFloat(bom.poPrice) - parseFloat(bom.discount ?? 0))),
         ]);
+        totalAmount +=
+          parseFloat(bom.quantity) *
+            (parseFloat(bom.poPrice) - parseFloat(bom.discount ?? 0)) +
+          (bom.tax[0].value / 100) *
+            (parseFloat(bom.quantity) *
+              (parseFloat(bom.poPrice) - parseFloat(bom.discount ?? 0)));
+        count += 1;
       });
       return;
     }
     rows.push([
-      idx,
+      count,
       item.idBoq.name,
       item.idBoq.categoryName,
       item.idBoq.description,
@@ -532,15 +610,35 @@ function generateInvoiceFromPowo(powo, powoItems) {
       item.idBoq.make,
       item.idBoq.quantity,
       taxToDisplayableValue(
-        parseFloat(item.idBoq.quantity) * parseFloat(item.idBoq.poPrice),
+        parseFloat(item.idBoq.quantity) *
+          (parseFloat(item.idBoq.poPrice) -
+            parseFloat(item.idBoq.discount ?? 0)),
         item.tax[0]
       ),
+      item.idBoq.discount.toFixed(2),
       item.idBoq.poPrice,
       parseFloat(item.idBoq.quantity) *
         (parseFloat(item.idBoq.poPrice) -
-          (item.tax[0].value / 100) * parseFloat(item.idBoq.poPrice)),
+          parseFloat(item.idBoq.discount ?? 0)) +
+        (item.tax[0].value / 100) *
+          (parseFloat(item.idBoq.quantity) *
+            (parseFloat(item.idBoq.poPrice) -
+              parseFloat(item.idBoq.discount ?? 0))),
     ]);
+    count += 1;
+    totalAmount +=
+      parseFloat(item.idBoq.quantity) *
+        (parseFloat(item.idBoq.poPrice) -
+          parseFloat(item.idBoq.discount ?? 0)) +
+      (item.tax[0].value / 100) *
+        (parseFloat(item.idBoq.quantity) *
+          (parseFloat(item.idBoq.poPrice) -
+            parseFloat(item.idBoq.discount ?? 0)));
   });
+  totalAmount += powo.freightCharges ?? 0;
+  totalAmount += powo.additionalCharges ?? 0;
+  totalAmount -= powo.additionalDiscount ?? 0;
+  taxBreakups["Total Amount"] = totalAmount;
 
   return generateInvoice({
     poDetails: {
@@ -549,7 +647,7 @@ function generateInvoiceFromPowo(powo, powoItems) {
       createdAt: new Date(powo.createdAt),
       deliveryDate: new Date(powo.deliveryDate),
       createdBy: powo.createdBy,
-      contact: "", // We need the user's phone and email
+      contact: powo?.idAddedBy?.phone ?? "", // We need the user's phone and email
     },
     vendorDetails: {
       name: powo.idVendor.name,
@@ -568,6 +666,7 @@ function generateInvoiceFromPowo(powo, powoItems) {
         "Make",
         "Quantity",
         "Tax",
+        "Discount",
         "Price",
         "Total",
       ],
@@ -575,6 +674,7 @@ function generateInvoiceFromPowo(powo, powoItems) {
     },
     image: {
       url: powo.idOrg.imgUrl,
+      sign: powo.signImageUrl,
     },
     billDetails: {
       name: powo.idOrg.name,
